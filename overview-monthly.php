@@ -39,8 +39,8 @@ function cleanTxt($x) {
 			<br>
 			<ul class="breadcrumb">
 				<li><a href="./overview.php">Overview - Daily</a></li>
-				<li>Overview - Weekly</li>
-				<li><a href="#">Overview - Monthly</a></li>
+				<li><a href="./overview-weekly.php">Overview - Weekly</li>
+				<li>Overview - Monthly</li>
 			</ul>
 			<br>
 			<form method="post" id="overview-search" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
@@ -242,10 +242,13 @@ function cleanTxt($x) {
 	$getWeekYear = date('W', strtotime($oYear . '-' . $fetchMonth . '-' . $weekNumEnd)); // base on the end day of the week we get the week number in a year
 	$weekNumMonth = date('m', strtotime($oYear . '-' . $fetchMonth . '-' . $weekNumEnd)); // This will be used to compare during loop
 	$counterDay = $weekNumEnd; // set counter by taking last day of the week
-	$forLoopMonth = date('t', strtotime($oYear . '-' . $fetchMonth . '-01'));
+	$forLoopMonth = 1;
 	
 	$timeIn = array();
 	$timeOut = array();
+	
+	// Get week count in a month
+	
 	
 	echo "<table class='overview'>\n<tr>\n<th>Date</th>\n<th>Login Time</th>\n<th>Logout Time</th>\n<th>Remarks</th>\n</tr>\n\n"; // Create Table
 	//for($y = 1; $y <= $forLoopMonth; $y++) {

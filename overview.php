@@ -40,7 +40,7 @@ function cleanTxt($x) {
 			<ul class="breadcrumb">
 				<li>Overview - Daily</li>
 				<li><a href="./overview-weekly.php">Overview - Weekly</a></li>
-				<li><a href="#">Overview - Monthly</a></li>
+				<li><a href="./overview-monthly.php">Overview - Monthly</a></li>
 			</ul>
 			<br>
 			<form method="post" id="overview-search" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
