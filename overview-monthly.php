@@ -39,7 +39,7 @@ function cleanTxt($x) {
 			<br>
 			<ul class="breadcrumb">
 				<li><a href="./overview.php">Overview - Daily</a></li>
-				<li><a href="./overview-weekly.php">Overview - Weekly</li>
+				<li><a href="./overview-weekly.php">Overview - Weekly</a></li>
 				<li>Overview - Monthly</li>
 			</ul>
 			<br>
@@ -159,7 +159,6 @@ function cleanTxt($x) {
 	$eID = $loginID;
 	$oYear = date('Y');
 	$oMonth = date('m');
-	$oWeek = $postWeek;
 	
 	if(isset($_POST['m']) && isset($_POST['y']) && isset($_POST['emp'])) { // if form submit happen, use the specified values.
 		$oYear = cleanTxt($_POST['y']);
@@ -234,30 +233,56 @@ function cleanTxt($x) {
 <?php
 	$weeklyMonthly = 0; // false 0 or true 1
 	$dailyTimeInMsg = $dailyTimeOutMsg = "";
-	$postDate = date('Y-m-d', strtotime($oYear . '-' . $fetchMonth . '-01')); // set generic date of the month
 	
-	// Set week start and end
-	$weekDayNum = date('w', strtotime($postDate)); // get php week day number 0 - 6 where 0 is sunday and 6 is saturday
-	$weekNumEnd = date('d', strtotime($postDate . ' +' . (6-$weekDayNum) . ' days')) + ($postWeek * 7); // get end day of each week in a month.
-	$getWeekYear = date('W', strtotime($oYear . '-' . $fetchMonth . '-' . $weekNumEnd)); // base on the end day of the week we get the week number in a year
-	$weekNumMonth = date('m', strtotime($oYear . '-' . $fetchMonth . '-' . $weekNumEnd)); // This will be used to compare during loop
-	$counterDay = $weekNumEnd; // set counter by taking last day of the week
-	$forLoopMonth = 1;
+	
+	
 	
 	$timeIn = array();
 	$timeOut = array();
 	
 	// Get week count in a month
+	$setDay = 1;
+	$setWeekCtr = 1;
+	$getSelectedMonth = date('m', strtotime($oYear . '-' . $fetchMonth . '-' . $setDay));
+	$setSelectedWeek = date('W', strtotime($oYear . '-' . $fetchMonth . '-' . $setDay));
+	$setWeek = $setSelectedWeek;
 	
+	while(intval(date('m', strtotime($oYear . '-' . $fetchMonth . '-01'))) == intval($getSelectedMonth)) {
+		if(intval($setSelectedWeek) != intval($setWeek))
+			$setWeekCtr++;
+				
+		$setWeek = date('W', strtotime($oYear . '-' . $fetchMonth . '-' . $setDay));
+		
+		$setDay++; // change day
+		$setSelectedWeek = date('W', strtotime($oYear . '-' . $fetchMonth . '-' . $setDay)); // change week number in year with new day
+		$getSelectedMonth = date('m', strtotime($oYear . '-' . $fetchMonth . '-' . $setDay)); // change month with new day
+	}
 	
 	echo "<table class='overview'>\n<tr>\n<th>Date</th>\n<th>Login Time</th>\n<th>Logout Time</th>\n<th>Remarks</th>\n</tr>\n\n"; // Create Table
-	//for($y = 1; $y <= $forLoopMonth; $y++) {
+	for($y = 1; $y <= intval($setWeekCtr); $y++) {
 		
-		//for($x = 1; $x <= 7; $x++) {
-			$timeIn[$x] = "NULL";
-			$timeOut[$x] = "NULL";
-			
+		for($x = 1; $x <= 7; $x++) {
 			$ix = $y * $x;
+			var_dump($ix);
+			$postDate = date('Y-m-d', strtotime($oYear . '-' . $fetchMonth . '-' . $ix)); // set generic date of the month
+			// Set week start and end
+			$weekDayNum = date('w', strtotime($postDate)); // get php week day number 0 - 6 where 0 is sunday and 6 is saturday
+			$weekNumEnd = date('d', strtotime($postDate . ' +' . (6-$weekDayNum) . ' days')) + (($ix - 1) * 7); // get end day of each week in a month.
+			if($y == $setWeekCtr) {
+				// if form selects week 5 then do these instead.
+				$weekNumEnd = intval(date('t', strtotime($postDate)));
+				$counterDay = intval(date('d', strtotime($postDate . ' +' . (6-$weekDayNum) . ' days')) + (3 * 7)) + 1;
+			} else {
+				// otherwise do defaults
+				$counterDay = $weekNumEnd;
+			}
+			$getWeekYear = date('W', strtotime($oYear . '-' . $fetchMonth . '-' . $weekNumEnd)); // base on the end day of the week we get the week number in a year
+			$weekNumMonth = date('m', strtotime($oYear . '-' . $fetchMonth . '-' . $weekNumEnd)); // This will be used to compare during loop
+			$counterDay = $weekNumEnd; // set counter by taking last day of the week
+			
+			$timeIn[$ix] = "NULL";
+			$timeOut[$ix] = "NULL";
+			
 			
 			/*
 			* Why do while instead of MySQLI's fetch assoc to grab the dates?   *
@@ -361,9 +386,9 @@ function cleanTxt($x) {
 				
 			}
 			$counterDay--;
-		//}
-	
-	//}
+		};
+		
+	}
 	echo "</table>\n";
 ?>
 						</div>
