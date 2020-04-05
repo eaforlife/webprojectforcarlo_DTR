@@ -1,0 +1,340 @@
+.bg-container {
+	height: 380px;
+}
+.bg {
+	background-color: black; /* fallback background if image doesn't exist */
+	background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../style/stock-photo-red-alarm-clock-1124798804.jpg'); /* edit inside url with code for url of background image
+																																			* . dot means up 1 folder level. In other words 2 dots here
+																																			* just means we go to the root directory where the HTML pages are */
+	height: 100%;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	position: inherit;
+}
+.bg-txt a {
+	text-align: center;
+	position: static;
+	float: left;
+	left: 0;
+	transform: translate(+15%,+400%); /* translate(x-axis,y-axis) for background-image text position */
+	color: #FAFAFA;
+	font-size: 32px;
+	font-weight: bold;
+	text-transform: uppercase;
+	text-decoration: none;
+}
+.bg-text a:hover { transform: brightness(140%); }
+
+/* TOP MENU */
+.navbar, header {
+	overflow: hidden;
+	background-color: #3F4654;
+	font-family: inherit;
+}
+
+.navbar a, header a {
+	float: left;
+	font-size: 16px;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+	text-transform: uppercase;
+}
+
+.dropdown {
+	float: left;
+	overflow: hidden;
+}
+.active {
+	background-color: #EFF3F2;
+	color: #000;
+	cursor: default;
+	
+	margin-right: 20px;
+}
+.dropdown .dropbtn {
+	font-size: 16px;
+	border: none;
+	outline: none;
+	color: #FFF;
+	padding: 14px 16px;
+	background-color: inherit;
+	font-family: inherit;
+}
+.dropbtn {
+	text-transform: uppercase;
+}
+
+.navbar a:hover, .menu-nav a:hover, .dropdown:hover .dropbtn {
+	background-color: #EFF3F2;
+	color: #000;
+}
+
+.dropdown-content {
+	display: none;
+	position: absolute;
+	background-color: #3F4654;
+	min-width: 160px;
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	z-index: 1;
+}
+
+.dropdown-content a {
+	float: none;
+	color: #FAFAFA;
+	padding: 12px 16px;
+	text-decoration: none;
+	display: block;
+	text-align: left;
+}
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+
+/* SMALL WIDTH MENU */
+/* END OF TOP MENU */
+
+.searchForm {
+	width: 100%;
+	display: flex;
+}
+table { table-layout: fixed; border-collapse: collapse; }
+table, th, td {
+	border: 1px solid #000;
+	text-align: center;
+	width: 100%;
+}
+th, td {
+	padding: 10px;
+	border: 1px solid #DDD;
+}
+
+.header-title h2 {
+	text-transform: uppercase;
+}
+/* for login page */
+.loginform input {
+	width: 100% !important;
+	padding: 12px 20px !important;
+	margin: 8px 0 !important;
+	display: inline-block !important;
+	border: 1px solid #ccc !important;
+	box-sizing: border-box !important;
+}
+.loginform .btn-login {
+	width: 100%;
+}
+.loginform .btn-login:hover {
+	filter: brightness(95%);
+}
+/* css for warning modal */
+.modal-cancel {
+	display: none;
+	position: fixed;
+	z-index: 1;
+	padding-top: 150px;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	background-color: #FFF;
+	background-color: rgba(0,0,0,0.4);
+}
+.modal-cancel-box {
+	position: relative;
+	background-color: #FEFEFE;
+	margin: auto;
+	padding: 0;
+	border: 1px solid #888;
+	width: 40%;
+	box-shadow: 2px 2px 5px #ABABAB;
+}
+.modal-cancel-header {
+	padding: 2px 16px;
+	background-color: #FF6363;
+	color: #FFF;
+}
+.modal-cancel-body {
+	padding: 2px 16px;
+}
+.modal-cancel-footer {
+	padding: 16px 16px;
+	margin: 15px 8px;
+}
+.modal-cancel #close, #log-close {
+	float: right;
+	color: #FFF;
+	font-size: 32px;
+	font-weight: bold;
+	
+}
+.modal-cancel #close:hover, .modal-cancel #close:focus, #log-close:hover, #log-close:focus {
+	color: #000;
+	text-decoration: none;
+	cursor: pointer;
+}
+.modal-cancel button {
+	font-style: inherit;
+	font-size: 16px;
+}
+
+.output-success {
+	display: none;
+}
+.output-error {
+	display: none;
+}
+input[type=text] {
+	margin: 7px 5px;
+	height: 13px;
+	border-radius: 5px;
+}
+input[type=password] {
+	height: 11px;
+	border-radius: 5px;
+}
+input[type=checkbox] {
+	height: 11px;
+	border-radius: 2px;
+}
+input[type=number] {
+	height: 11px;
+	border-radius: 2px;
+}
+input[list] {
+	height: 11px;
+	border-radius: 5px;
+}
+form select {
+	height: 24px;
+	border-radius: 5px;
+}
+#email-error {
+	display: none;
+}
+#fname-error {
+	display: none;
+}
+#lname-error {
+	display: none;
+}
+#pass1-error {
+	display: none;
+}
+#pass2-error {
+	display: none;
+}
+
+.bottom-space {
+	margin-top: 40px;
+}
+
+/* Overview Page */
+.overview {
+	 color: #4A4A4A;
+	 font-size: 12px;
+}
+.overview td {
+	margin: 5px 3px;
+	vertical-align: bottom;
+	text-align: right;
+}
+.overview td:last-child { text-align: left; }
+.overview tr:not(:first-child) { height: 70px; } /* ignore height of header row in table */
+.overview .date {
+	padding-top: 20px;
+	padding-left: 15px;
+}
+.overview p {
+	margin: 0;
+	padding: 0;
+}
+.overview .time {
+	margin-top: 15px;
+}
+.overview .red {
+	background-color: #FC8C8C;
+}
+.overview .green {
+	background-color: #7DCEA0;
+}
+.tbl-weekend { background-color: #AEB6BF; }
+.tbl-weekday { background-color: #F4F6F7; }
+
+.tbl-monthly { margin: 0; padding: 0; }
+.monthly { vertical-align: bottom; text-align: center; }
+.monthly p { padding: 5px; }
+.monthly h2 { margin: 5px; padding: 0;}
+
+/* print area - A4 */
+.print-area {
+	width: 8.27in !important;
+	/* height: 11.69in !important; */
+	margin: auto;
+}
+.print-content {
+	width: 95%;
+	min-height: 11.69in;
+}
+.print-small {
+	font-size: 6px;
+}
+.print-generated { margin: 0; font-size: 5px !important; display: none; }
+
+@media print {
+	/* For overview page - only print page area */
+	@page { size: A4; padding: 15mm 0 15mm 0; margin: 0 auto; display: none; }
+	.overview tr { page-break-after: auto; }
+	header, footer, .row { display: none; }
+	.shadow, body { box-shadow: none; }
+	.print-area, .print-content, .print-content .container, .print-content .row, .print-generated { display: block; }
+	.overview {
+		 color: #4A4A4A;
+		 font-size: 8px;
+	}
+	body, html { -webkit-print-color-adjust: exact !important; }
+	.overview td {
+		margin: 5px 3px !important;
+		vertical-align: center !important;
+		text-align: center !important;
+	}
+	.overview tr:not(:first-child) { height: 40px; } /* ignore height of header row in table */
+	.overview .date {
+		padding-top: 5px;
+		padding-left: 4px;
+	}
+	.overview .time {
+		margin-top: 4px;
+	}
+	.overview .red {
+		border: 1px solid #000;
+		background-color: #FC8C8C;
+	}
+	.overview .green {
+		border: 1px solid #000;
+		background-color: #7DCEA0;
+	}
+	.print-content h2 {
+		font-size: 16px;
+	}
+	.print-content p {
+		font-size: 10px;
+	}
+}
+@media (max-width: 1436px) {
+	.modal-cancel-box, .login-form {
+		padding: 0;
+		position: initial;
+		width: 450px;
+		margin: auto;
+	}
+}
