@@ -234,9 +234,6 @@ function cleanTxt($x) {
 	$weeklyMonthly = 0; // false 0 or true 1
 	$dailyTimeInMsg = $dailyTimeOutMsg = "";
 	
-	
-	
-	
 	$timeIn = array();
 	$timeOut = array();
 	
@@ -258,17 +255,24 @@ function cleanTxt($x) {
 		$getSelectedMonth = date('m', strtotime($oYear . '-' . $fetchMonth . '-' . $setDay)); // change month with new day
 	}
 	
+	$weekNumMonth = date('t', strtotime($oYear . '-' . $fetchMonth . '-01')); // This will be used to compare during loop
+	
+	$timeIn = array();
+	$timeOut = array();
+	
 	echo "<table class='overview'>\n<tr>\n<th>Date</th>\n<th>Login Time</th>\n<th>Logout Time</th>\n<th>Remarks</th>\n</tr>\n\n"; // Create Table
-	for($y = 1; $y <= intval($setWeekCtr); $y++) {
-		
-		for($x = 1; $x <= 7; $x++) {
-			$ix = $y * $x;
-			var_dump($ix);
+	for($y = 0; $y < intval($setWeekCtr); $y++) {
+		$ctrWeek = ($y * 7) + 1;
+		//var_dump($y);
+		//var_dump($ctrWeek);
+		for($x = $ctrWeek; $x < ($ctrWeek + 7); $x++) {
+			$ix = $x;
+			//var_dump($ix);
 			$postDate = date('Y-m-d', strtotime($oYear . '-' . $fetchMonth . '-' . $ix)); // set generic date of the month
 			// Set week start and end
 			$weekDayNum = date('w', strtotime($postDate)); // get php week day number 0 - 6 where 0 is sunday and 6 is saturday
-			$weekNumEnd = date('d', strtotime($postDate . ' +' . (6-$weekDayNum) . ' days')) + (($ix - 1) * 7); // get end day of each week in a month.
-			if($y == $setWeekCtr) {
+			$weekNumEnd = date('d', strtotime($postDate . ' +' . (6-$weekDayNum) . ' days')) + ($ix * 7); // get end day of each week in a month.
+			if(($y + 1) == $setWeekCtr) {
 				// if form selects week 5 then do these instead.
 				$weekNumEnd = intval(date('t', strtotime($postDate)));
 				$counterDay = intval(date('d', strtotime($postDate . ' +' . (6-$weekDayNum) . ' days')) + (3 * 7)) + 1;
@@ -276,13 +280,10 @@ function cleanTxt($x) {
 				// otherwise do defaults
 				$counterDay = $weekNumEnd;
 			}
-			$getWeekYear = date('W', strtotime($oYear . '-' . $fetchMonth . '-' . $weekNumEnd)); // base on the end day of the week we get the week number in a year
-			$weekNumMonth = date('m', strtotime($oYear . '-' . $fetchMonth . '-' . $weekNumEnd)); // This will be used to compare during loop
-			$counterDay = $weekNumEnd; // set counter by taking last day of the week
+			$getWeekYear = date('W', strtotime($oYear . '-' . $fetchMonth . '-' . $ix)); // base on the end day of the week we get the week number in a year
 			
-			$timeIn[$ix] = "NULL";
-			$timeOut[$ix] = "NULL";
-			
+			$counterDay = $ix; // set counter by taking last day of the week
+						
 			
 			/*
 			* Why do while instead of MySQLI's fetch assoc to grab the dates?   *
@@ -295,12 +296,12 @@ function cleanTxt($x) {
 			* Originally I had set the loop to stop when the date falls in the  *
 			* next month. But the codes are too long now to adjust this.        */
 			
-			$test[$x] = "TEST " . $x;
+			//$test[$ix] = "TEST " . $ix;
 			
 			/* Define the current month */
-			$checkMonthofWeek = date('m', strtotime($oYear . '-' . $fetchMonth . '-' . $counterDay));
-				
-			if($checkMonthofWeek != $weekNumMonth) {
+			$checkMonthofWeek = date('d', strtotime($oYear . '-' . $fetchMonth . '-' . $ix));
+			
+			if(intval($checkMonthofWeek) > intval($weekNumMonth)) {
 				/* This will check if month is different and will omit dates in the week.   *
 				*  Since MySQL or PHP does not have the ability to show weeks in a month,   *
 				*  we instead use PHP's date('W') as well as WEEK(<date>,3) to get the week *
@@ -312,84 +313,108 @@ function cleanTxt($x) {
 				*																		    *
 				*  In short this is a workaround to get proper weekly reports. And this is  *
 				*  why we prefer to use to get the last day of a week instead of the start. */
-				$timeIn[$x] = "NULL";
-				$timeOut[$x] = "NULL";
+				$timeIn[$ix] = "NULL";
+				$timeOut[$ix] = "NULL";
+				
 			} else {
-				$newDt = date('Y-m-d', strtotime($oYear . '-' . $fetchMonth . '-' . $counterDay)); // get week number in a year. Format ISO-8601
-				$summarySQL = "SELECT empID, timeMode, DATE(timeDateTime) AS timeDate, timeDateTime FROM emp_time WHERE empID='$eID' AND WEEK(timeDateTime, 3)='$getWeekYear' AND DATE(timeDateTime)='$newDt' LIMIT 2"; // sql to get week date. 
+				$newDt = date('Y-m-d', strtotime($oYear . '-' . $fetchMonth . '-' . $ix)); // get week number in a year. Format ISO-8601
+				$summarySQL = "SELECT * FROM emp_time WHERE empID='$eID' AND WEEK(timeDateTime, 3)='$getWeekYear' AND DATE(timeDateTime)='$newDt' AND timeMode='0' LIMIT 1;"; // sql to get week date. 
 				
 				$summaryQuery = $myConn->query($summarySQL);
 				if($summaryQuery->num_rows > 0) {
 					while($row = $summaryQuery->fetch_assoc()) {
-						if($row['timeMode'] == '0') {
-							$timeIn[$ix] = date('H:i:s', strtotime($row['timeDateTime']));
-						} else {
-							$timeOut[$ix] = date('H:i:s', strtotime($row['timeDateTime']));
-						}
+						$timeIn[$ix] = date('H:i:s', strtotime($row['timeDateTime']));
 					}
 				} else {
-					$timeIn[$ix] = "WEEKEND";
-					$timeOut[$ix] = "WEEKEND";
+					if(date('N', strtotime($newDt)) >= 6) {
+						$timeIn[$ix] = 'WEEKEND';
+					} else {
+						$timeIn[$ix] = 'empty';
+					}
+				}
+				
+				$summarySQL = "SELECT * FROM emp_time WHERE empID='$eID' AND WEEK(timeDateTime, 3)='$getWeekYear' AND DATE(timeDateTime)='$newDt' AND timeMode='1' LIMIT 1;"; // sql to get week date. 
+				//var_dump($summarySQL);
+				
+				$summaryQuery = $myConn->query($summarySQL);
+				if($summaryQuery->num_rows > 0) {
+					while($row = $summaryQuery->fetch_assoc()) {
+						$timeOut[$ix] = date('H:i:s', strtotime($row['timeDateTime']));
+					}
+				} else {
+					if(date('N', strtotime($newDt)) >= 6) {
+						$timeOut[$ix] = 'WEEKEND';
+					} else {
+						$timeOut[$ix] = 'empty';
+					}
 				}
 			}
 			
+			
 			if(empty($timeIn) && empty($timeOut)) {
-				/* Do this if nothing has been set */
-				echo "</table>\n";
-				echo "<h2 class='txt-danger'>An unexpected error has occurred and is not able to show results!</h2>\n";
+			/* Do this if nothing has been set */
+				echo "<tr>\n";
+				echo "<td>&nbsp;</td>\n<td>&nbsp;</td>\n<td>&nbsp;</td>\n<td>&nbsp;</td>\n";
+				echo "</tr>\n";
 			} else {
-					$tableDate = date('M j Y (D)', strtotime($oYear . '-' . $fetchMonth . '-' . $counterDay)); // Convert to readable format
-					if($timeIn[$ix] == 'NULL' && $timeOut[$ix] == 'NULL') {
-						echo "<tr>\n";
-						echo "<td>&nbsp;</td>\n<td>&nbsp;</td>\n<td>&nbsp;</td>\n<td>&nbsp;</td>\n";
-						echo "</tr>\n";
-					} elseif ($timeIn[$ix] == 'NULL' && $timeOut[$ix] != 'NULL') {
-						if($timeOut[$ix] == '00:00:01') {
-							echo "<tr class='tbl-weekday'>\n";
-							echo "<td>$tableDate</td>\n<td>Not applicable</td>\n<td>" . $timeOut[$ix] . "</td>\n<td class='green'>Set by admin</td>\n";
-							echo "</tr>\n";
-						} else {
-							echo "<tr class='tbl-weekday'>\n";
-							echo "<td>$tableDate</td>\n<td>&nbsp;</td>\n<td>" . $timeOut[$ix] . "</td>\n<td class='red'>Did not time out!</td>\n";
-							echo "</tr>\n";
-						}
-					} elseif ($timeIn[$ix] != 'NULL' && $timeOut[$ix] == 'NULL') {
+				$tableDate = date('M j Y (D)', strtotime($oYear . '-' . $fetchMonth . '-' . $ix)); // Convert to readable format
+				if($timeIn[$ix] == 'NULL' && $timeOut[$ix] == 'NULL') {
+					echo "<tr>\n";
+					echo "<td>&nbsp;</td>\n<td>&nbsp;</td>\n<td>&nbsp;</td>\n<td>&nbsp;</td>\n";
+					echo "</tr>\n";
+				} elseif ($timeIn[$ix] == 'NULL' && $timeOut[$ix] != 'NULL' && $timeIn[$ix] != 'empty' || $timeOut[$ix] != 'empty' && $timeIn[$ix] != 'WEEKEND' && $timeOut[$ix] != 'WEEKEND') {
+					if($timeOut[$ix] == '00:00:01' && $timeIn[$ix] == 'empty') {
 						echo "<tr class='tbl-weekday'>\n";
-						echo "<td>$tableDate</td>\n<td>&nbsp;</td>\n<td>" . $timeIn[$ix] . "</td>\n<td class='red'>Did not time in!</td>\n";
-						echo "</tr>\n";
-					} elseif($timeIn[$ix] != 'NULL' && $timeOut[$ix] != 'NULL' && $timeIn[$ix] != 'WEEKEND') {
-						echo "<tr class='tbl-weekday'>\n";
-						echo "<td>" . $tableDate . "</td>\n";
-						echo "<td>" . $timeIn[$ix] . "</td>\n";
-						echo "<td>" . $timeOut[$ix] . "</td>\n";
-						
-						if($timeIn[$ix] >= '07:59:00' && $timeIn[$ix] <= '08:01:00' && $timeOut[$ix] >= '17:00:00' && $timeOut[$ix] <= '17:01:00')
-							echo "<td class='green'>No Remarks</td>\n";
-						elseif(strtotime($timeIn[$ix]) >= strtotime('08:01:01') && $timeOut[$ix] >= '17:00:00' && $timeOut[$ix] <= '17:01:00')
-							echo "<td class='red'>Late by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes</td>\n";
-						elseif(strtotime($timeIn[$ix]) <= strtotime('07:58:59') && $timeOut[$ix] >= '17:00:00' && $timeOut[$ix] <= '17:01:00')
-							echo "<td class='red'>Early by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes</td>\n";
-						elseif($timeIn[$ix] >= '07:59:00' && $timeIn[$ix] <= '08:01:00' && strtotime($timeOut[$ix]) >= '17:01:01')
-							echo "<td class='red'>Overtime by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes</td>\n";
-						elseif($timeIn[$ix] >= '07:59:00' && $timeIn[$ix] <= '08:01:00' && strtotime($timeOut[$ix]) <= '16:59:59')
-							echo "<td class='red'>Early out by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes</td>\n";
-						elseif(strtotime($timeIn[$ix]) >= strtotime('08:01:01') && strtotime($timeOut[$ix]) >= '17:01:01')
-							echo "<td class='red'>Late by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes<br>Overtime by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes</td>\n";
-						else
-							echo "<td class='red'>Early by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes<br>Early out by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes</td>\n";
+						echo "<td>$tableDate</td>\n<td>Not applicable</td>\n<td>" . $timeOut[$ix] . "</td>\n<td class='green'>Set by admin</td>\n";
 						echo "</tr>\n";
 					} else {
-						echo "<tr class='tbl-weekend'>\n";
-						echo "<td>$tableDate</td>\n<td>&nbsp;</td>\n<td>&nbsp;</td>\n<td>Weekend</td>\n";
+						echo "<tr class='tbl-weekday'>\n";
+						echo "<td>$tableDate</td>\n<td>&nbsp;</td>\n<td>" . $timeOut[$ix] . "</td>\n<td class='red'>Did not time in!</td>\n";
 						echo "</tr>\n";
 					}
-				
+				} elseif ($timeIn[$ix] != 'NULL' && $timeOut[$ix] == 'NULL' && $timeIn[$ix] != 'empty' && $timeOut[$ix] != 'empty') {
+					echo "<tr class='tbl-weekday'>\n";
+					echo "<td>$tableDate</td>\n<td>&nbsp;</td>\n<td>" . $timeIn[$ix] . "</td>\n<td class='red'>Did not time out!</td>\n";
+					echo "</tr>\n";
+				} elseif($timeIn[$ix] != 'NULL' && $timeOut[$ix] != 'NULL' && $timeIn[$ix] != 'WEEKEND' && $timeIn[$ix] != 'empty' && $timeOut[$ix] != 'empty') {
+					echo "<tr class='tbl-weekday'>\n";
+					echo "<td>" . $tableDate . "</td>\n";
+					echo "<td>" . $timeIn[$ix] . "</td>\n";
+					echo "<td>" . $timeOut[$ix] . "</td>\n";
+					
+					if($timeIn[$ix] >= '07:59:00' && $timeIn[$ix] <= '08:01:00' && $timeOut[$ix] >= '17:00:00' && $timeOut <= '17:01:00')
+						echo "<td class='green'>No Remarks</td>\n";
+					elseif(strtotime($timeIn[$ix]) >= strtotime('08:01:01') && $timeOut[$ix] >= '17:00:00' && $timeOut <= '17:01:00')
+						echo "<td class='red'>Late by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes</td>\n";
+					elseif(strtotime($timeIn[$ix]) <= strtotime('07:58:59') && $timeOut[$ix] >= '17:00:00' && $timeOut <= '17:01:00')
+						echo "<td class='red'>Early by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes</td>\n";
+					elseif($timeIn[$ix] >= '07:59:00' && $timeIn[$ix] <= '08:01:00' && strtotime($timeOut[$ix]) >= '17:01:01')
+						echo "<td class='red'>Overtime by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes</td>\n";
+					elseif($timeIn[$ix] >= '07:59:00' && $timeIn[$ix] <= '08:01:00' && strtotime($timeOut[$ix]) <= '16:59:59')
+						echo "<td class='red'>Early out by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes</td>\n";
+					elseif(strtotime($timeIn[$ix]) >= strtotime('08:01:01') && strtotime($timeOut[$ix]) >= '17:01:01')
+						echo "<td class='red'>Late by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes<br>Overtime by " . round(((abs(strtotime($timeIn[$x]) - strtotime('08:01:01'))) / 60) / 60) . " minutes</td>\n";
+					
+					else
+						echo "<td class='red'>Early by " . round(((abs(strtotime($timeIn[$ix]) - strtotime('08:01:01'))) / 60) / 60) . " minutes<br>Early out by " . round(((abs(strtotime($timeIn[$x]) - strtotime('08:01:01'))) / 60) / 60) . " minutes</td>\n";
+					
+					echo "</tr>\n";
+				} elseif($timeIn[$x] == 'WEEKEND' && $timeOut[$ix] == 'WEEKEND' && $timeIn[$ix] != 'empty' && $timeOut[$ix] != 'empty')  {
+					echo "<tr class='tbl-weekend'>\n";
+					echo "<td>$tableDate</td>\n<td>&nbsp;</td>\n<td>&nbsp;</td>\n<td>Weekend</td>\n";
+					echo "</tr>\n";
+				} elseif($timeIn[$x] != 'WEEKEND' && $timeOut[$ix] == 'WEEKEND' && $timeIn[$ix] != 'empty' && $timeOut[$ix] == 'empty') {
+					echo "<tr class='tbl-day'>\n";
+					echo "<td>$tableDate</td>\n<td>&nbsp;</td>\n<td>&nbsp;</td>\n<td class='red'>No record or absent/td>\n";
+					echo "</tr>\n";
+				}
+			
 			}
-			$counterDay--;
-		};
-		
+			//$counterDay--;
+		}
 	}
 	echo "</table>\n";
+	var_dump($timeOut);
 ?>
 						</div>
 					</div>
