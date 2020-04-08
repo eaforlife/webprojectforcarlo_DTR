@@ -43,7 +43,7 @@
 				<?php if($loginLevel === '1'): ?>
 				<a href="./time-in-weekly.php">Time-In/Time-out - Weekly</a>
 				<a href="./time-in-monthly.php">Time-In/Time-out - Monthly</a>
-				<a href="./overview.php">Time Record Audit</a>
+				<a href="./overview.php">Attendance Audit</a>
 				<?php endif; ?>
 			</div>
 		</div>
@@ -61,7 +61,7 @@
 				<a href="./time-in-daily.php">Time-In/Time-out - Daily</a>
 				<a href="./time-in-weekly.php">Time-In/Time-out - Weekly</a>
 				<a href="./time-in-monthly.php">Time-In/Time-out - Monthly</a>
-				<?php if($loginLevel === '1'): ?> <a href="./overview.php">Time Record Audit</a><?php endif; ?>
+				<?php if($loginLevel === '1'): ?> <a href="./overview.php">Attendance Audit</a><?php endif; ?>
 				
 				<?php if(!isset($_SESSION['login-name'])): ?>
 				<a href='./login.php?log=1'>Login</a>

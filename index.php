@@ -187,7 +187,6 @@
 				<input type="checkbox" value="yes" id="isadmin" name="admin"><br><br>
 				<input type="submit" class="btn form-flex btn-success" value="Create">
 			</form>
-			<?php var_dump($errArr); ?>
 			<div id="addEmployee"></div>
 		</div>
 		<div class="col-md-1">&nbsp;</div>
