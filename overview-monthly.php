@@ -81,9 +81,9 @@ function cleanTxt($x) {
 	$employeeID = "";
 	unset($employees);
 ?>
-				</select><br><br>
+				</select>
 				<label for="selYear">Year: </label>
-				<select id="selYear" name="y" required>
+				<select id="selYear" name="y" class="form-flex" required>
 					<option value="null" disabled selected>--- Select Year ---</option>
 <?php
 	// Dynamically get first available year in database
@@ -120,13 +120,18 @@ function cleanTxt($x) {
 ?>
 				</select>
 				<label for="selMonth">Month: </label>
-				<select id="selMonth" name="m" required>
+				<select id="selMonth" name="m" class="form-flex" required>
 					<option value="null" disabled selected>--- Select Month ---</option>
 <?php
 	// Auto populate month. 
 	$months = array();
+	if(isset($_POST['y'])) {
+		$fetchYear = cleanTxt($_POST['y']);
+	} else {
+		$fetchYear = date('Y');
+	}
 	for($x = 1; $x < 13; $x++) {
-		$customDT = "2020-" . $x . "-01";
+		$customDT = $fetchYear . "-" . $x . "-01";
 		$newMonth = date('F', strtotime($customDT));
 		$months[$x] = $newMonth;
 	}
@@ -249,8 +254,6 @@ function cleanTxt($x) {
 	
 	$attendance = array();
 	
-	var_dump($setWeekCtr);
-	
 	//echo "<table class='overview'>\n<tr>\n<th>Date</th>\n<th>Login Time</th>\n<th>Logout Time</th>\n<th>Remarks</th>\n</tr>\n\n"; // Create Table
 	for($y = 0; $y < intval($setWeekCtr); $y++) {
 		$ctrWeek = ($y * 7) + 1;
@@ -261,7 +264,6 @@ function cleanTxt($x) {
 		
 		echo "<tr>";
 		echo "<td class='tbl-weekday'><h4>Week " . ($y + 1) . "</h4></td>";
-		var_dump($y + 1);
 		for($x = 0; $x < 7; $x++) {
 			$ix = $x;
 			$postDate = date('Y-m-d', strtotime($dateWeek . ' +' . $ix . ' days')); // set generic date of the month
@@ -338,7 +340,7 @@ function cleanTxt($x) {
 			
 			if($attendance[$ix][0] == 'NULL' && $attendance[$ix][1] == 'NULL' && $attendance[$ix][2] == 'NULL') {
 			/* Do this if nothing has been set */
-				echo "\n<td class='tbl-weekday'>&nbsp;</td>";
+				echo "\n<td>&nbsp;</td>";
 			} elseif($attendance[$ix][1] == 'WEEKEND' && $attendance[$ix][2] == 'WEEKEND') {
 				echo "<td class='tbl-weekend'><div class='monthly'><h2>$tableDate</h2></div></td>";
 			} elseif ($attendance[$ix][1] == 'empty' && $attendance[$ix][2] == 'empty') {

@@ -236,11 +236,9 @@
 <?php include("./require_footer.php"); ?>
 
 <script>
-var success = document.getElementById("success-msg");
-
-if (document.contains(success)) {
-	setTimeout(success.style.block = "none", 10000);
-}
+document.getElementById("frmAdd").onfocus = function() {
+	document.getElementById("success-msg").style.display = 'none';
+};
 
 document.getElementById("time-daily").onclick = function() {
 	window.location.replace("./time-in-daily.php");

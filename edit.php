@@ -19,8 +19,8 @@
 <?php
 require("./myCon.php");
 
-$empID = "{empID}";
-$empName = "{empName}";
+$empID = $loginID;
+$empName = $loginName;
 $empStatus = "";
 if(isset($_GET['e'])) {
 	$eID = $_GET['e'];
@@ -33,12 +33,6 @@ if(isset($_GET['e'])) {
 		while($row = $empRslt->fetch_assoc()) {
 			$empID = $row['acctID'];
 			$empName = $row['lastName'] . ", " . $row['firstName'];
-			$empStatus = $row['status'];
-			if($empStatus == 0) {
-				$empStatus = 'Archived';
-			} elseif($empStatus == 1) {
-				$empStatus = 'Active';
-			}
 		}
 	}
 }
@@ -47,7 +41,7 @@ if(isset($_GET['e'])) {
 	<div class="container">
 		<div class="col-md-1">&nbsp;</div>
 		<div class="col-md-10">
-			<h2>Modify Employee <?php echo $empName; ?></h2>
+			<h2>Modify Employee</h2>
 		</div>
 		<div class="col-md-1">&nbsp;</div>
 	</div>
@@ -56,68 +50,24 @@ if(isset($_GET['e'])) {
 <div class="row">
 	<div class="container">
 		<div class="col-md-1">&nbsp;</div>
-		<div class="col-md-10 col-flex">
-			<form>
+		<div class="col-md-5">
+			<form method="post">
 				<label for="empID">Employee ID: </label>
-				<input type="text" id="empID" name="empID" value="<?php echo $empID; ?>" disabled>
+				<input type="text" id="empID" name="empID" value="<?php echo $empID; ?>" disabled><br>
 				<label for="empName">Employee Name: </label>
-				<input type="text" id="empName" value="<?php echo $empName; ?>" disabled>
+				<input type="text" id="empName" value="<?php echo $empName; ?>" disabled><br>
 				<label for="empStatus">Status: </label>
-				<input type="text" id="empStatus" value="<?php echo $empStatus; ?>" disabled>
+				<input type="text" id="empStatus" value="<?php echo $empStatus; ?>" disabled><br>
 				<label for="empOldPass">Old Password: </label>
-				<input type="password" id="empOldPass" name="oldpass" value="" autocomplete="current-password">
+				<input type="password" id="empOldPass" name="oldpass" value="" autocomplete="current-password"><br>
 				<label for="empPass1">Old Password: </label>
-				<input type="password" id="empPass1" name="pass1" value="" autocomplete="new-password">
+				<input type="password" id="empPass1" name="pass1" value="" autocomplete="new-password"><br>
 				<label for="empPass2">Old Password: </label>
-				<input type="password" id="empPass2" name="pass2" value="" autocomplete="new-password">
+				<input type="password" id="empPass2" name="pass2" value="" autocomplete="new-password"><br>
 			</form>
 		</div>
-		<div class="col-md-1">&nbsp;</div>
-	</div>
-</div>
-<hr>
-<div class="row">
-	<div class="container">
-		<div class="col-md-1">&nbsp;</div>
-		<div class="col-md-10">
-			<table>
-				<tr>
-					<th>ID</th>
-					<th>Employee Name</th>
-					<th>E-Mail</th>
-					<th>Status</th>
-				</tr>
-				<?php
-				if(isset($_GET['e'])) {
-					$emID = $_GET['e'];
-					$emID = trim($emID);
-					$emID = htmlspecialchars($emID);
-					
-					$empListQ = "SELECT * FROM emp_accounts;";
-					$empListQRslt = $myConn->query($empListQ);
-					if($empListQRslt->num_rows > 0) {
-						while($row = $empListQRslt->fetch_assoc()) {
-							if($emID === $row['acctID']) { ?>
-								<tr bgcolor="#EFF3F2">
-							<?php } else { ?>
-								<tr onclick="editRow(<?php echo $row['acctID']; ?>) $>
-							<?php } ?>
-							<td><?php echo $row['acctID']; ?></td>
-							<td><?php echo $row['lastName'] . "," . $row['firstName']; ?></td>
-							<td><?php echo $row['email']; ?></td>
-							<?php
-								if($row['status'] == 1) { ?>
-								<td class='txt-success'>Active</td> <?php 
-								} else { ?> 
-								<td class='txt-danger'>Archived</td> <?php }
-							?>
-							</tr>
-							<?php
-						}
-					}
-				}
-				?>
-			</table>
+		<div class="col-md-5">
+			
 		</div>
 		<div class="col-md-1">&nbsp;</div>
 	</div>

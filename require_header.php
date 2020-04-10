@@ -33,7 +33,7 @@
 	</div>
 	
 	<div class="menu-nav">
-		<a name="top" class="active" disabled> menu </a>
+		<a name="top" href="./index.php" class="active"> menu </a>
 		<?php if($loginLevel === '1'): ?><a href='./records.php'>Records</a><?php endif; ?>
 		<div class="dropdown">
 			<button class="dropbtn">Tools</button>
