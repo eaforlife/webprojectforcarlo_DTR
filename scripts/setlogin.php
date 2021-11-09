@@ -64,9 +64,6 @@ if(isset($_POST['email']) && isset($_POST['firstName']) && isset($_POST['lastNam
 	echo "test = " . $_POST['firstName'];
 }
 
-	
-
-
 function cleanTxt($x) {
 	$x = trim($x);
 	$x = htmlspecialchars($x);

@@ -51,6 +51,8 @@ if(isset($obj['login-username']) && isset($obj['login-password'])) {
 			$loginQuery->free_result();
 			$loginQuery->close();
 			
+			// todo: add to database
+			
 		} else {
 			// Mysql error handling
 			$json_out = array("error" => "1", "message" => "Something went wrong while trying to login. Error: " . $myConn->error);
