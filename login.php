@@ -81,7 +81,8 @@
 		
 		xhr.onload = function() {
 			jsonObj = JSON.parse(this.responseText);
-			if(jsonObj['error'] == "0") {
+			console.log(jsonObj);
+			if(jsonObj['error'] != "1") {
 				loginForm.classList.add("d-none");
 				var divSuccess = document.querySelector(".login-success");
 				divSuccess.classList.remove("d-none");
@@ -119,7 +120,6 @@
 	}
 	
 	function destroySession() {
-		console.log("start session destroy");
 		var xhr = new XMLHttpRequest();
 		xhr.onload = function() {
 			var jObj = JSON.parse(this.responseText);

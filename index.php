@@ -66,7 +66,7 @@
 						<h2 class="fw-light">Welcome <span class="text-capitalize" id="userFullName"></span>!</h2>
 						<div id="user-status-in" class="text-capitalize d-none"><h2 class="text-success"><span>You are currently timed in.</span></h2></div>
 						<div id="user-status-out" class="text-capitalize d-none"><h2 class="text-danger"><span>You are currently timed out.</span></h2></div>
-						<p class="font-monospace text-muted"><span id="userSessionTimer"></span></p>
+						<p class="font-monospace text-muted"><span id="userSessionTimer">Calculating...</span></p>
 						<button type="button" id="btn-user-out" class="btn btn-lg btn-danger d-none" data-bs-toggle="modal" data-bs-target="#warning-timeout">Time Out</button>
 						<span class="d-inline block d-none" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="You have already signed out for the day.">
 							<button type="button" id="btn-user-disable" class="btn btn-lg btn-danger" disabled>Time Out</button>
@@ -95,10 +95,10 @@
 						<div class="col-lg-8">
 							<div class="container">
 								<p class="fw-bold">Employee Search</p>
-								<form class="row mx-auto my-2">
+								<form class="row mx-auto my-2 emp-search">
 									<div class="input-group mb-2">
 										<label for="emp-search-field" class="visually-hidden">Search: </label>
-										<input type="text" class="form-control" id="emp-search-text" name="emp-search-text" placeholder="Search Employee" aria-label="Employee Search" required>
+										<input type="text" class="form-control" id="emp-search-text" name="emp-search-text" placeholder="Search Employee ID, Name or Username" aria-label="Employee Search" required>
 										<div class="invalid-tooltip">Error</div>
 										<button type="submit" class="btn btn-outline-dark px-3"><i class="bi bi-search"></i></button>
 										<button type="button" id="emp-list-refresh" class="btn btn-outline-dark px-3"><i class="bi bi-arrow-clockwise"></i></button>
@@ -111,29 +111,15 @@
 												<tr>
 													<th scope="col">Emp No.</th>
 													<th scope="col">Name</th>
-													<th scope="col">Session</th>
-													<th scope="col">Last Update</th>
+													<th scope="col">Status</th>
 												</tr>
 											</thead>
 											<tbody class="text-capitalize" id="tbl-employee">
-												<tr data-bs-toggle="modal" data-bs-target="#emp-info" data-bs-employee="1000001">
-													<th scope="row">1000001</th>
-													<td>test, test</td>
-													<td class="text-success">active</td>
-													<td>date and time</td>
-												</tr>
-												<tr data-bs-toggle="modal" data-bs-target="#emp-info" data-bs-employee="1000002">
-													<th scope="row">1000002</th>
-													<td>test, two test</td>
-													<td class="text-warning">interrupted</td>
-													<td>date and time</td>
-												</tr>
-												<tr data-bs-toggle="modal" data-bs-target="#emp-info" data-bs-employee="1000003">
-													<th scope="row">1000003</th>
-													<td>test, three test</td>
-													<td class="text-secondary">signed out</td>
-													<td>date and time</td>
-												</tr>
+												<div class="text-center table-loading">
+													<div class="spinner-grow my-5" role="status">
+														<span class="visually-hidden">Loading...</span>
+													</div>
+												</div>
 											</tbody>
 										</table>
 									</div>
@@ -163,7 +149,7 @@
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
-				By selecting continue, any session timer that's active on your account will be terminated. You will not be able to time-in again until the next day. Do you wish to continue?
+				By selecting continue, any session timer that's active on your account will be terminated. Do you wish to continue?
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -182,8 +168,8 @@
 			</div>
 			<div class="modal-body" id="emp-search-output">
 				<div class="text-capitalize">
-					<p>Employee ID: <span class="font-monospace emp-modal-id">1000000</span></p>
-					<p>Employee Name: <span class="font-monospace">test, name</span></p>
+					<p>Employee ID: <span class="font-monospace emp-modal-id"></span></p>
+					<p>Employee Name: <span class="font-monospace emp-modal-name"></span></p>
 					<p>Employee Session: <span class="font-monospace text-success fw-bolder fs-4">Active</span></p>
 					<p>Session Time: <span class="font-monospace">03:00:45</span></p>
 				</div>
@@ -215,7 +201,7 @@
 <!-- Javascript end of page for faster load times -->
 <script src="./scripts/bootstrap.bundle.min.js"></script>
 <script>
-	console.log("Hello World.");
+	//console.log("Hello World.");
 	var counter = 0;
 	//var sessionTime = setInterval(sessionTimer, 1000);
 	
@@ -232,10 +218,19 @@
 	empInfoModal.addEventListener("show.bs.modal", function (e) {
 		var tblData = e.relatedTarget;
 		var empTblId = tblData.getAttribute("data-bs-employee");
+		var empTblName = tblData.getAttribute("data-bs-name");
 		var empModalInfo = document.querySelector("#emp-search-output .emp-modal-id");
-		
+		var empModalInfoName = document.querySelector("#emp-search-output .emp-modal-name");
+		empModalInfoName.innerHTML = empTblName;
 		empModalInfo.innerHTML = empTblId;
-	});	
+	});
+	document.querySelector(".emp-search").addEventListener("submit", function(e) {
+		var refreshTable = setInterval(fillTable(e.target.value), 5000);
+		e.preventDefault();
+	});
+	document.querySelector("#emp-search-text").addEventListener("input", function(e) {
+		var refreshTable = setInterval(fillTable(e.target.value), 5000);
+	});
 	
 	document.getElementById("btn-timeout").addEventListener("click", function() {
 		console.log("Stopped Timer");
@@ -250,13 +245,11 @@
 	
 	// main functions
 	function init() {
-		var xhr = new XMLHttpRequest();
-		var urlo = {src: "index"};
-		var xhrObj = JSON.stringify(urlo);
-		
+		const xhr = new XMLHttpRequest();
 		xhr.onload = function() {
 			//console.log(this.responseText);
 			var initObj = JSON.parse(this.responseText);
+			console.log(initObj);
 			if(initObj['error'] == "0") {
 				document.querySelector("#nav-userfullname").innerHTML = initObj['user-name'];
 				document.querySelector("#userFullName").innerHTML = initObj['user-name'];
@@ -267,6 +260,8 @@
 					document.querySelector("#user-status-priv").classList.remove("d-none");
 				
 				var sessionTime = setInterval(sessionTimer, 1000);
+				
+				var refreshTable = setInterval(fillTable(), 5000);
 			} else {
 				console.log(initObj['message']); // debug
 				// window.location.href = "./login.php"; // page should not load if something went wrong here. go back to login page.
@@ -275,7 +270,19 @@
 		xhr.open("POST", "./scripts/session-init.php", true);
 		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		xhr.send("src=index");
-		
+	}
+	
+	function fillTable(data) {
+		document.querySelector(".table-loading").classList.remove("d-none");
+		if(data == null)
+			data = "";
+		const xhr = new XMLHttpRequest();
+		xhr.onload = function() {
+			document.querySelector("#tbl-employee").innerHTML = this.responseText;
+			document.querySelector(".table-loading").classList.add("d-none");
+		}
+		xhr.open("GET", "./scripts/content.php?src=tbl-index&data="+data, true);
+		xhr.send();
 	}
 	
 	// set session timer
