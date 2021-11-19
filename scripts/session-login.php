@@ -53,7 +53,7 @@ if(isset($obj['login-username']) && isset($obj['login-password'])) {
 			
 			$userlogged = 0;
 			
-			if($checkUserLog = $myConn->prepare("SELECT empID, timeDateTime, timeMode FROM emp_time WHERE DATE(timeDateTime) = ? AND empID = ? AND timeMode != '1';")) {
+			/* if($checkUserLog = $myConn->prepare("SELECT empID, timeDateTime, timeMode FROM emp_time WHERE DATE(timeDateTime) = ? AND empID = ? AND timeMode != '1';")) {
 				$checkUserLog->bind_param("ss", $curD, $empID);
 				$checkUserLog->execute();
 				$rsltLog = $checkUserLog->get_result();
@@ -63,7 +63,7 @@ if(isset($obj['login-username']) && isset($obj['login-password'])) {
 				} 
 				$checkUserLog->free_result();
 				$checkUserLog->close();
-			}
+			} */
 			
 			if($errorCtr <= 0 && $userlogged == 0) {
 				if($timeIn = $myConn->prepare("INSERT INTO emp_time VALUES (NULL, ?, '0', ?);")) {
@@ -98,6 +98,8 @@ function addtoSession($usnID, $usnName, $usnAdmin) {
 	session_start();
 	$_SESSION['id'] = $usnID;
 	$_SESSION['emp-name'] = $usnName;
+	if(isset($_SESSION['error']))
+		unset($_SESSION['error']);
 	if($usnAdmin=="1")
 		$_SESSION['admin'] = "1";
 	$_SESSION['expire'] = time() + 3600; // add session expiry of 1 hour.

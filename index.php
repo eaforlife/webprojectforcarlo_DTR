@@ -40,20 +40,19 @@
 	<div class="row"> <!-- Navigation -->
 		<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow mb-3 rounded">
 			<div class="container-fluid">
-				<a class="navbar-brand" href="./index.php">Attendance System</a>
+				<a class="navbar-brand" href="./index.php">Attendance System</a>				
 				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navigationMenu" aria-controls="navigationMenu" aria-expanded="false" aria-label="Toggle navigation">
 					<span class="navbar-toggler-icon"></span>
 				</button>
 				
 				<div class="collapse navbar-collapse" id="navigationMenu">
-					<div class="navbar-nav me-auto">
+					<div class="navbar-nav me-auto ">
 						<a class="nav-link active" aria-current="page" href="#">Home</a>
 						<a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#page-unavailable">Settings</a>
 						<a class="nav-link" id="nav-timeout" href="#">Logout <span class="text-capitalize" id="nav-userfullname"></span></a>
 					</div>
-					<span class="navbar-text text-success fw-bold fs-6 d-none" id="user-status-priv">Logged in as Administrator</span>
+					<span class="navbar-text text-success fw-bold fs-6 d-none" id="user-status-priv">Logged in as Admin</span>
 				</div>
-				
 			</div>
 		</nav>
 	</div>
@@ -66,7 +65,7 @@
 						<h2 class="fw-light">Welcome <span class="text-capitalize" id="userFullName"></span>!</h2>
 						<div id="user-status-in" class="text-capitalize d-none"><h2 class="text-success"><span>You are currently timed in.</span></h2></div>
 						<div id="user-status-out" class="text-capitalize d-none"><h2 class="text-danger"><span>You are currently timed out.</span></h2></div>
-						<p class="font-monospace text-muted"><span id="userSessionTimer">Calculating...</span></p>
+						
 						<button type="button" id="btn-user-out" class="btn btn-lg btn-danger d-none" data-bs-toggle="modal" data-bs-target="#warning-timeout">Time Out</button>
 						<span class="d-inline block d-none" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="You have already signed out for the day.">
 							<button type="button" id="btn-user-disable" class="btn btn-lg btn-danger" disabled>Time Out</button>
@@ -83,11 +82,8 @@
 							<div class="container">
 								<p class="fw-bold">What do you want to do?</p>
 								<div class="d-grid gap-2">
-									<div class="btn-group-vertical btn-group-lg" role="group" aria-label="Quick Links">
-										<button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#page-unavailable">Edit Profile</button>
-										<button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#page-unavailable">Summary</button>
-										<button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#page-unavailable">Admin Tools</button>
-										<button type="button" class="btn btn-dark">Log Out</button>
+									<div class="btn-group-vertical btn-group-lg btn-quick-links" role="group" aria-label="Quick Links">
+										
 									</div>
 								</div>
 							</div>
@@ -115,13 +111,13 @@
 												</tr>
 											</thead>
 											<tbody class="text-capitalize" id="tbl-employee">
-												<div class="text-center table-loading">
-													<div class="spinner-grow my-5" role="status">
-														<span class="visually-hidden">Loading...</span>
-													</div>
-												</div>
 											</tbody>
 										</table>
+										<div class="text-center table-loading">
+											<div class="spinner-grow my-5" role="status">
+												<span class="visually-hidden">Loading...</span>
+											</div>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -145,7 +141,7 @@
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title" id="warning-timeout-title">Are you sure you want to time out?</h5>
+				<h5 class="modal-title" id="warning-timeout-title"><span class="text-danger"><i class="bi bi-exclamation-circle-fill"></i></span> Are you sure you want to time out?</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
@@ -153,7 +149,7 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-				<button type="button" class="btn btn-danger" id="btn-timeout">Continue</button>
+				<button type="button" class="btn btn-danger" id="btn-timeout"><i class="bi bi-exclamation-circle"></i> Continue</button>
 			</div>
 		</div>
 	</div>
@@ -163,7 +159,7 @@
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title" id="emp-info-title">Employee Status</h5>
+				<h5 class="modal-title" id="emp-info-title"><span class="text-info"><i class="bi bi-info-circle-fill"></i></span> Employee Status</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body" id="emp-search-output">
@@ -185,7 +181,7 @@
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title" id="emp-info-title">Page Not Available</h5>
+				<h5 class="modal-title" id="emp-info-title"><span class="text-warning"><i class="bi bi-tools"></i></span> Page Not Available</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
@@ -203,73 +199,71 @@
 <script>
 	//console.log("Hello World.");
 	var counter = 0;
+	var sessionTime;
+	var refreshTable;
 	//var sessionTime = setInterval(sessionTimer, 1000);
 	
 	// Initialize Page
 	init();
+	window.onload = function() {
+	  inactivityTime();
+	}
 	
 	// Initialize bootstrap utilities
 	var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
 	var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
 	  return new bootstrap.Popover(popoverTriggerEl)
 	})
-	
-	var empInfoModal = document.getElementById("emp-info");
-	empInfoModal.addEventListener("show.bs.modal", function (e) {
-		var tblData = e.relatedTarget;
-		var empTblId = tblData.getAttribute("data-bs-employee");
-		var empTblName = tblData.getAttribute("data-bs-name");
-		var empModalInfo = document.querySelector("#emp-search-output .emp-modal-id");
-		var empModalInfoName = document.querySelector("#emp-search-output .emp-modal-name");
-		empModalInfoName.innerHTML = empTblName;
-		empModalInfo.innerHTML = empTblId;
-	});
-	document.querySelector(".emp-search").addEventListener("submit", function(e) {
-		var refreshTable = setInterval(fillTable(e.target.value), 5000);
-		e.preventDefault();
-	});
-	document.querySelector("#emp-search-text").addEventListener("input", function(e) {
-		var refreshTable = setInterval(fillTable(e.target.value), 5000);
-	});
-	
-	document.getElementById("btn-timeout").addEventListener("click", function() {
-		console.log("Stopped Timer");
-		window.location.href = "./login.php";
-		stopTimer();
-	});
-	document.getElementById("nav-timeout").addEventListener("click", function() {
-		console.log("Stopped Timer");
-		window.location.href = "./login.php";
-		stopTimer();
-	});
-	
+	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+		return new bootstrap.Tooltip(tooltipTriggerEl)
+	})
 	// main functions
 	function init() {
 		const xhr = new XMLHttpRequest();
 		xhr.onload = function() {
 			//console.log(this.responseText);
-			var initObj = JSON.parse(this.responseText);
-			console.log(initObj);
-			if(initObj['error'] == "0") {
-				document.querySelector("#nav-userfullname").innerHTML = initObj['user-name'];
-				document.querySelector("#userFullName").innerHTML = initObj['user-name'];
-				// todo if currently timed it conditions
-				document.querySelector("#user-status-in").classList.remove("d-none");
-				document.querySelector("#btn-user-out").classList.remove("d-none");
-				if(initObj['user-admin'] == "true")
-					document.querySelector("#user-status-priv").classList.remove("d-none");
-				
-				var sessionTime = setInterval(sessionTimer, 1000);
-				
-				var refreshTable = setInterval(fillTable(), 5000);
-			} else {
-				console.log(initObj['message']); // debug
-				// window.location.href = "./login.php"; // page should not load if something went wrong here. go back to login page.
+			try {
+				var initObj = JSON.parse(this.responseText);
+				console.log(initObj);
+				if(initObj['error'] == "0") {
+					initmenu("index");
+					document.querySelector("#nav-userfullname").innerHTML = initObj['user-name'];
+					document.querySelector("#userFullName").innerHTML = initObj['user-name'];
+					// todo if currently timed it conditions
+					document.querySelector("#user-status-in").classList.remove("d-none");
+					document.querySelector("#btn-user-out").classList.remove("d-none");
+					if(initObj['user-admin'] == "true")
+						document.querySelector("#user-status-priv").classList.remove("d-none");
+					
+					sessionTime = setInterval(sessionTimer, 1000);
+					fillTable();
+					refreshTable = setInterval(fillTable, 10000);
+				} else {
+					console.log(initObj['message']); // debug
+					window.location.href = "./login.php"; // page should not load if something went wrong here. go back to login page. uncomment after debug
+				}
+			} catch(err) {
+				console.log("init error");
+				console.log(err);
 			}
 		}
 		xhr.open("POST", "./scripts/session-init.php", true);
 		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		xhr.send("src=index");
+	}
+	
+	function initmenu(data) {
+		if(data == null)
+			data = "";
+		const xhr = new XMLHttpRequest();
+		xhr.onload = function() {
+			if(data == "index") {
+				document.querySelector(".btn-quick-links").innerHTML = this.responseText;
+			}
+		}
+		xhr.open("GET", "./scripts/content.php?src=menu&placement="+data, true);
+		xhr.send();
 	}
 	
 	function fillTable(data) {
@@ -280,6 +274,7 @@
 		xhr.onload = function() {
 			document.querySelector("#tbl-employee").innerHTML = this.responseText;
 			document.querySelector(".table-loading").classList.add("d-none");
+			//console.log("table ajax loaded");
 		}
 		xhr.open("GET", "./scripts/content.php?src=tbl-index&data="+data, true);
 		xhr.send();
@@ -313,10 +308,68 @@
 		counter++;
 	}
 	
-	function stopTimer() {
+	function stopSessionTimer() {
 		clearInterval(sessionTime);
 	}
 	
+	function stopTableTimer() {
+		clearInterval(refreshTable);
+	}
+	
+	var inactivityTime = function () {
+		var time;
+		window.onload = resetTimer;
+		// DOM Events
+		document.onmousemove = resetTimer;
+		document.onkeydown = resetTimer;
+
+		function setidle() {
+				var xhr = new XMLHttpRequest();
+				xhr.onload = function() {
+					console.log("idle");
+					window.location.href = "./login.php";
+				}
+				xhr.open("GET", "./scripts/session-logout.php?src=idle", true);
+				xhr.send();
+				
+		}
+
+		function resetTimer() {
+			clearTimeout(time);
+			time = setTimeout(setidle, 300000) // 5mins or 300,000ms idle
+			// 1000 milliseconds = 1 second
+		}
+	};
+	
+	var empInfoModal = document.getElementById("emp-info");
+	empInfoModal.addEventListener("show.bs.modal", function (e) {
+		var tblData = e.relatedTarget;
+		var empTblId = tblData.getAttribute("data-bs-employee");
+		var empTblName = tblData.getAttribute("data-bs-name");
+		var empModalInfo = document.querySelector("#emp-search-output .emp-modal-id");
+		var empModalInfoName = document.querySelector("#emp-search-output .emp-modal-name");
+		empModalInfoName.innerHTML = empTblName;
+		empModalInfo.innerHTML = empTblId;
+	});
+	document.querySelector(".emp-search").addEventListener("submit", function(e) {
+		refreshTable = setInterval(fillTable(e.target.value), 5000);
+		e.preventDefault();
+	});
+	document.querySelector("#emp-search-text").addEventListener("input", function(e) {
+		stopTableTimer();
+		refreshTable = setInterval(fillTable(e.target.value), 5000);
+	});
+	
+	document.getElementById("btn-timeout").addEventListener("click", function() {
+		//console.log("Stopped Timer");
+		window.location.href = "./login.php";
+		stopSessionTimer();
+	});
+	document.getElementById("nav-timeout").addEventListener("click", function() {
+		//console.log("Stopped Timer");
+		window.location.href = "./login.php";
+		stopSessionTimer();
+	});
 </script>
 </body>
 </html>
