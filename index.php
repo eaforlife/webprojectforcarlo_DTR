@@ -48,7 +48,7 @@
 				<div class="collapse navbar-collapse" id="navigationMenu">
 					<div class="navbar-nav me-auto ">
 						<a class="nav-link active" aria-current="page" href="#">Home</a>
-						<a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#page-unavailable">Settings</a>
+						<a class="nav-link" href="./edit.html">Settings</a>
 						<a class="nav-link" id="nav-timeout" href="#">Logout <span class="text-capitalize" id="nav-userfullname"></span></a>
 					</div>
 					<span class="navbar-text text-success fw-bold fs-6 d-none" id="user-status-priv">Logged in as Admin</span>
@@ -78,7 +78,7 @@
 			<div class="row mb-4">
 				<div class="col-lg-8 mx-auto">
 					<div class="row">
-						<div class="col-lg-4 align-self-center d-none d-md-block">
+						<div class="col-lg align-self-center d-none d-md-block">
 							<div class="container">
 								<p class="fw-bold">What do you want to do?</p>
 								<div class="d-grid gap-2">
@@ -88,7 +88,7 @@
 								</div>
 							</div>
 						</div>
-						<div class="col-lg-8">
+						<div class="col-lg-8 employee-search d-none">
 							<div class="container">
 								<p class="fw-bold">Employee Search</p>
 								<form class="row mx-auto my-2 emp-search">
@@ -162,12 +162,11 @@
 				<h5 class="modal-title" id="emp-info-title"><span class="text-info"><i class="bi bi-info-circle-fill"></i></span> Employee Status</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
-			<div class="modal-body" id="emp-search-output">
-				<div class="text-capitalize">
-					<p>Employee ID: <span class="font-monospace emp-modal-id"></span></p>
-					<p>Employee Name: <span class="font-monospace emp-modal-name"></span></p>
-					<p>Employee Session: <span class="font-monospace text-success fw-bolder fs-4">Active</span></p>
-					<p>Session Time: <span class="font-monospace">03:00:45</span></p>
+			<div class="modal-body">
+				<div class="text-capitalize" id="emp-search-output">
+					<div class="spinner-border emp-info-loading" role="status">
+						<span class="visually-hidden">Loading...</span>
+					</div>
 				</div>
 			</div>
 			<div class="modal-footer">
@@ -199,8 +198,9 @@
 <script>
 	//console.log("Hello World.");
 	var counter = 0;
-	var sessionTime;
+	//var sessionTime;
 	var refreshTable;
+	var refreshModalEmployee;
 	//var sessionTime = setInterval(sessionTimer, 1000);
 	
 	// Initialize Page
@@ -233,12 +233,14 @@
 					// todo if currently timed it conditions
 					document.querySelector("#user-status-in").classList.remove("d-none");
 					document.querySelector("#btn-user-out").classList.remove("d-none");
-					if(initObj['user-admin'] == "true")
+					if(initObj['user-admin'] == "true") {
 						document.querySelector("#user-status-priv").classList.remove("d-none");
+						document.querySelector(".employee-search").classList.remove("d-none");
+						fillTable();
+						refreshTable = setInterval(fillTable, 10000);
+					}
+					//sessionTime = setInterval(sessionTimer, 1000);
 					
-					sessionTime = setInterval(sessionTimer, 1000);
-					fillTable();
-					refreshTable = setInterval(fillTable, 10000);
 				} else {
 					console.log(initObj['message']); // debug
 					window.location.href = "./login.php"; // page should not load if something went wrong here. go back to login page. uncomment after debug
@@ -268,6 +270,7 @@
 	
 	function fillTable(data) {
 		document.querySelector(".table-loading").classList.remove("d-none");
+		document.querySelector("#tbl-employee").innerHTML = "";
 		if(data == null)
 			data = "";
 		const xhr = new XMLHttpRequest();
@@ -278,38 +281,6 @@
 		}
 		xhr.open("GET", "./scripts/content.php?src=tbl-index&data="+data, true);
 		xhr.send();
-	}
-	
-	// set session timer
-	function sessionTimer() {
-		_hrs = counter / 3600;
-		_min = (_hrs * 60) - (Math.floor(_hrs) * 60);
-		_sec = (_min * 60) - (Math.floor(_min) * 60);
-		_hrs = Math.floor(_hrs);
-		_min = Math.floor(_min);
-		_sec = Math.floor(_sec);
-		if(_hrs <= 9) {
-			_hrs = "0" + _hrs;
-		}
-		if(_min >= 60) {
-			_min = "00";
-		}
-		if(_min <= 9) {
-			_min = "0" + _min;
-		}
-		if(_sec >= 60) {
-			_sec = "00";
-		}
-		if(_sec <= 9) {
-			_sec = "0" + _sec;
-		}
-		var output = _hrs + ":" + _min + ":" + _sec;
-		document.getElementById("userSessionTimer").innerHTML = "Time in session: " + output;
-		counter++;
-	}
-	
-	function stopSessionTimer() {
-		clearInterval(sessionTime);
 	}
 	
 	function stopTableTimer() {
@@ -324,14 +295,14 @@
 		document.onkeydown = resetTimer;
 
 		function setidle() {
-				var xhr = new XMLHttpRequest();
-				xhr.onload = function() {
-					console.log("idle");
-					window.location.href = "./login.php";
-				}
-				xhr.open("GET", "./scripts/session-logout.php?src=idle", true);
-				xhr.send();
-				
+			var xhr = new XMLHttpRequest();
+			xhr.onload = function() {
+				console.log("idle");
+				console.log(this.responseText);
+				window.location.href = "./login.php";
+			}
+			xhr.open("GET", "./scripts/session-logout.php?src=idle", true);
+			xhr.send();
 		}
 
 		function resetTimer() {
@@ -343,13 +314,20 @@
 	
 	var empInfoModal = document.getElementById("emp-info");
 	empInfoModal.addEventListener("show.bs.modal", function (e) {
+		stopTableTimer();
 		var tblData = e.relatedTarget;
 		var empTblId = tblData.getAttribute("data-bs-employee");
-		var empTblName = tblData.getAttribute("data-bs-name");
-		var empModalInfo = document.querySelector("#emp-search-output .emp-modal-id");
-		var empModalInfoName = document.querySelector("#emp-search-output .emp-modal-name");
-		empModalInfoName.innerHTML = empTblName;
-		empModalInfo.innerHTML = empTblId;
+		var xhr = new XMLHttpRequest();
+		xhr.onload = function() {
+			//document.querySelector(".emp-info-loading").classList.add("d-none");
+			document.querySelector("#emp-search-output").innerHTML = this.responseText;
+			
+		}
+		xhr.open("GET", "./scripts/content.php?src=tbl-index-emp&data="+empTblId, true);
+		xhr.send();
+	});
+	empInfoModal.addEventListener("hide.bs.modal", function (e) {
+		refreshTable = setInterval(fillTable, 10000);
 	});
 	document.querySelector(".emp-search").addEventListener("submit", function(e) {
 		refreshTable = setInterval(fillTable(e.target.value), 5000);
@@ -362,13 +340,25 @@
 	
 	document.getElementById("btn-timeout").addEventListener("click", function() {
 		//console.log("Stopped Timer");
-		window.location.href = "./login.php";
-		stopSessionTimer();
+		var xhr = new XMLHttpRequest();
+		xhr.onload = function() {
+			console.log(this.responseText);
+			window.location.href = "./login.php";
+		}
+		xhr.open("GET", "./scripts/session-logout.php", true);
+		xhr.send();
+		//stopSessionTimer();
 	});
 	document.getElementById("nav-timeout").addEventListener("click", function() {
 		//console.log("Stopped Timer");
-		window.location.href = "./login.php";
-		stopSessionTimer();
+		var xhr = new XMLHttpRequest();
+		xhr.onload = function() {
+			console.log("idle");
+			window.location.href = "./login.php";
+		}
+		xhr.open("GET", "./scripts/session-logout.php", true);
+		xhr.send();
+		//stopSessionTimer();
 	});
 </script>
 </body>

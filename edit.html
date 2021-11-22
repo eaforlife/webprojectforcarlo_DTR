@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<!-- Use of CSS Grid: https://www.w3schools.com/css/css_grid.asp -->
+<html>
+<head>
+	<title>Session Based Attendance - Edit</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="./style/bootstrap.min.css" rel="stylesheet">
+	<link href="./style/fonts/bootstrap-icons.css" rel="stylesheet">
+	<style>
+		body, footer {
+			background-color: #EAF0FA;
+		}
+		#bg-container {
+			height: 380px;
+		}
+		#bg {
+			background-color: black; /* fallback background if image doesn't exist */
+			background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('./style/stock-photo-red-alarm-clock-1124798804.jpg'); /* edit inside url with code for url of background image
+																																					* . dot means up 1 folder level. In other words 2 dots here
+																																					* just means we go to the root directory where the HTML pages are */
+			height: 100%;
+			background-position: center;
+			background-repeat: no-repeat;
+			background-size: cover;
+			position: inherit;
+		}
+	</style>
+</head>
+<body>
+
+<div class="container" id="body">
+	
+	<div class="row"> <!-- Header Image -->
+		<div class="container-fluid m-0 p-0">
+			<div id="bg-container"><div id="bg"></div></div>
+		</div>
+	</div>
+	
+	<div class="row"> <!-- Navigation -->
+		<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow mb-3 rounded">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="./index.php">Attendance System</a>				
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navigationMenu" aria-controls="navigationMenu" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				
+				<div class="collapse navbar-collapse" id="navigationMenu">
+					<div class="navbar-nav me-auto ">
+						<a class="nav-link" aria-current="page" href="./index.php">Home</a>
+						<a class="nav-link active" aria-current="page" href="#">Settings</a>
+						<a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#warning-timeout">Logout <span class="text-capitalize" id="nav-userfullname"></span></a>
+					</div>
+					<span class="navbar-text text-success fw-bold fs-6 d-none" id="user-status-priv">Logged in as Admin</span>
+				</div>
+			</div>
+		</nav>
+	</div>
+	
+	<div class="row bg-light"> <!-- Content -->
+		<div class="container-fluid py-5 shadow mb-2 rounded">
+			<div class="row my-2 p-5">
+				<div class="col-lg text-center">
+					<h2>Edit Profile</h2>
+				</div>
+			</div>
+			
+			<div class="row mb-2 p-1">
+				<div class="container">
+					<div class="d-flex justify-content-center align-content-center">
+						<div class="col-md-6">
+							<div class="my-5"><pre id="debug-text"></pre></div>
+						
+							<div class="text-center" id="edit-loading">
+								<div class="spinner-border" role="status" aria-hidden="true"></div>
+								<p><strong>Please Wait...</strong></p>
+							</div>
+							
+							<form class="d-none" id="form-edit" novalidate>
+								<div class="row g-2 align-items-center my-2">
+									<div class="col-sm-3">
+										<label for="emp-id" class="form-label">Employee ID</label>
+									</div>
+									<div class="col-sm">
+										<input type="text" class="form-control" id="emp-id" name="emp-id" placeholder="Employee ID" disabled>
+									</div>
+								</div>
+								<div class="row g-2 align-items-center my-2">
+									<div class="col-sm-3">
+										<label for="emp-fname" class="form-label">First Name</label>
+									</div>
+									<div class="col-sm">
+										<input type="text" class="form-control is-invalid" id="emp-fname" name="emp-fname" placeholder="First name" required>
+										<div class="invalid-feedback">First Name is required!</div>
+									</div>
+								</div>
+								<div class="row g-2 align-items-center my-2">
+									<div class="col-sm-3">
+										<label for="emp-lname" class="form-label">Last Name</label>
+									</div>
+									<div class="col-sm">
+										<input type="text" class="form-control is-valid" id="emp-lname" name="emp-lname" placeholder="Last name" required>
+										<div class="invalid-feedback">Last Name is required!</div>
+									</div>
+								</div>
+								<div class="row g-2 align-items-center my-2">
+									<div class="col-sm-3">
+										<label for="emp-email" class="form-label">E-Mail</label>
+									</div>
+									<div class="col-sm">
+										<input type="email" class="form-control" id="emp-email" name="emp-email" placeholder="Email" required>
+										<div class="invalid-feedback">E-Mail is required!</div>
+									</div>
+								</div>
+								<div class="row my-4">
+									<div class="d-flex justify-content-center align-content-center">
+										<div class="col-sm-10 p-3 border rounded">
+											<div class="row align-items-center my-2">
+												<div class="col-sm-3">
+													<label for="emp-username" class="form-label">Username</label>
+												</div>
+												<div class="col-sm">
+													<input type="text" class="form-control" id="emp-username" name="emp-username" placeholder="Username" disabled>
+												</div>
+											</div>
+											<div class="row align-items-center my-2">
+												<div class="col-sm-3">
+													<label for="emp-old-pass" class="form-label">Old Password</label>
+												</div>
+												<div class="col-sm">
+													<input type="password" class="form-control" id="emp-old-pass" name="emp-old-pass">
+													<div class="invalid-feedback">Incorrect Password!</div>
+												</div>
+											</div>
+											<div class="row align-items-center my-2">
+												<div class="col-sm-3">
+													<label for="emp-new-pass" class="form-label">New Password</label>
+												</div>
+												<div class="col-sm">
+													<input type="password" class="form-control" id="emp-new-pass" name="emp-new-pass" aria-describedby="new-pass-help">
+													<div id="new-pass-help" class="form-text"><i class="bi bi-info-circle"></i> Must be at least 8-12 characters long.</div>
+													<div class="invalid-feedback">Invalid Password!</div>
+												</div>
+											</div>
+											<div class="row align-items-center my-2">
+												<div class="col-sm-3">
+													<label for="emp-new-pass-confirm" class="form-label">Confirm New Password</label>
+												</div>
+												<div class="col-sm">
+													<input type="password" class="form-control" id="emp-new-pass-confirm" name="emp-new-pass-confirm" aria-describedby="new-pass-confirm-help">
+													<div id="new-pass-confirm-help" class="form-text"><i class="bi bi-info-circle"></i> Must be at least 8-12 characters long.</div>
+													<div class="invalid-feedback">Password must match!</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="row g-2 justify-content-end my-2">
+									<div class="col-sm-3">
+										<div class="d-grid g-2 d-md-block">
+											<button type="reset" class="btn btn-secondary">Reset</button>
+											<button type="submit" class="btn btn-success">Edit</button>
+										</div>
+									</div>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<footer class="row mt-2 p-5">	<!-- Footer -->
+		<div class="col-12 mx-auto text-center">
+			<p class="text-muted">Session Based Attendance &copy; 2021 | Powered by Bootstrap 5.1</p>
+		</div>
+	</footer>
+	
+</div>
+
+<!-- Modals/Tooltips -->
+<div class="modal fade" id="warning-timeout" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="warning-timeout-title">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="warning-timeout-title"><span class="text-danger"><i class="bi bi-exclamation-circle-fill"></i></span> Are you sure you want to time out?</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				By selecting continue, any session timer that's active on your account will be terminated. Do you wish to continue?
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-danger" id="btn-timeout"><i class="bi bi-exclamation-circle"></i> Continue</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="page-unavailable" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="page-unavailable">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="emp-info-title"><span class="text-warning"><i class="bi bi-tools"></i></span> Page Not Available</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				The page you are trying to view is not available yet.
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Javascript end of page for faster load times -->
+<script src="./scripts/bootstrap.bundle.min.js"></script>
+<script>
+	//console.log("Hello World.");
+	var formDefaults = new Object();
+	
+	// Initialize Page
+	init();
+	window.onload = function() {
+	  //inactivityTime(); // comment to disable auto logout when idle feature
+	}
+	
+	// Initialize bootstrap utilities
+	var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+	var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+	  return new bootstrap.Popover(popoverTriggerEl)
+	})
+	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+		return new bootstrap.Tooltip(tooltipTriggerEl)
+	})
+	// main functions
+	function init() {
+		const xhr = new XMLHttpRequest();
+		xhr.onload = function() {
+			//console.log(this.responseText);
+			try {
+				var initObj = JSON.parse(this.responseText);
+				console.log(initObj);
+				if(initObj['error'] == "0") {
+					formDefaults = initObj;
+					delete formDefaults.error;
+					delete formDefaults.message;
+					delete formDefaults['user-admin'];
+					setFormDefault();
+					if(initObj['user-admin'] == "true") {
+						document.querySelector("#user-status-priv").classList.remove("d-none");
+					}
+					
+				} else {
+					console.log(initObj['message']); // debug
+					window.location.href = "./login.php"; // page should not load if something went wrong here. go back to login page. uncomment after debug
+				}
+			} catch(err) {
+				console.log("init error");
+				console.log(err);
+			}
+			document.querySelector("#edit-loading").classList.add("d-none");
+			document.querySelector("#form-edit").classList.remove("d-none");
+		}
+		xhr.open("POST", "./scripts/session-init.php", true);
+		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		xhr.send("src=edit");
+	}
+	
+	function setFormDefault() {
+		for(var i of document.querySelectorAll("#form-edit input")) {
+			i.classList.remove("is-valid");
+			i.classList.remove("is-invalid");
+		}
+		document.querySelector("#emp-id").value = formDefaults['acct-id'];
+		document.querySelector("#emp-fname").value = formDefaults['first-name'];
+		document.querySelector("#emp-lname").value = formDefaults['last-name'];
+		document.querySelector("#emp-email").value = formDefaults['user-email'];
+		document.querySelector("#emp-username").value = formDefaults['user-name'];
+	}
+	
+	function submitForm() {
+		console.log("I am submitted");
+		var xhr = new XMLHttpRequest();
+		var editForm = document.querySelector("#form-edit");
+		var data = new FormData(editForm);
+		xhr.onload = function() {
+			var formvalidation = JSON.parse(this.responseText);
+			console.log(this.responseText);
+			if(formvalidation['type'] == 'validation') {
+				if(!("error" in formvalidation)) {
+				//document.querySelector('input').classList.remove("is-invalid");
+				for(var i of document.querySelectorAll("#form-edit input")) {
+					//console.log(i.id);
+					i.classList.remove("is-valid");
+					i.classList.remove("is-invalid");
+				}
+				console.log("No error");
+				} else {
+					delete formvalidation['error'];
+					for(var i of document.querySelectorAll("#form-edit input")) {
+						i.classList.add("is-valid");
+						Object.keys(formvalidation).forEach(function(k) {
+							document.querySelector("#form-edit #" + k).classList.remove("is-valid");
+							document.querySelector("#form-edit #" + k).classList.add("is-invalid");
+						});
+					}
+					/* Object.keys(formvalidation).forEach(function(k) {
+						document.querySelector("#form-edit #" + k).value = "";
+						document.querySelector("#form-edit #" + k).classList.add("is-invalid");
+					}); */
+				}
+				//document.querySelector("#debug-text").innerHTML = this.responseText;
+			}
+			
+		}
+		xhr.open("POST","./scripts/form-validation.php",true);
+		//xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		xhr.send(data);
+	}
+	
+	function initmenu(data) {
+		if(data == null)
+			data = "";
+	}
+	
+	var inactivityTime = function () {
+		var time;
+		window.onload = resetTimer;
+		// DOM Events
+		document.onmousemove = resetTimer;
+		document.onkeydown = resetTimer;
+
+		function setidle() {
+			var xhr = new XMLHttpRequest();
+			xhr.onload = function() {
+				console.log("idle");
+				console.log(this.responseText);
+				window.location.href = "./login.php";
+			}
+			xhr.open("GET", "./scripts/session-logout.php?src=idle", true);
+			xhr.send();
+		}
+
+		function resetTimer() {
+			clearTimeout(time);
+			time = setTimeout(setidle, 300000) // 5mins or 300,000ms idle
+			// 1000 milliseconds = 1 second
+		}
+	};
+	
+	document.querySelector("input").addEventListener("change", function(e) {
+		console.log(e.target.value);
+	}, false);
+	
+	document.querySelector("#form-edit").addEventListener("submit", function(e) {
+		submitForm();
+		e.preventDefault();
+	});
+	
+	document.querySelector("#form-edit").addEventListener("reset", function(e) {
+		console.log("Reset Clicked.");
+		setFormDefault();
+		e.preventDefault();
+	});
+	
+	document.getElementById("btn-timeout").addEventListener("click", function() {
+		//console.log("Stopped Timer");
+		var xhr = new XMLHttpRequest();
+		xhr.onload = function() {
+			console.log(this.responseText);
+			window.location.href = "./login.php";
+		}
+		xhr.open("GET", "./scripts/session-logout.php", true);
+		xhr.send();
+		//stopSessionTimer();
+	});
+</script>
+</body>
+</html>

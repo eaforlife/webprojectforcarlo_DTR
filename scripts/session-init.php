@@ -24,10 +24,10 @@ if(isset($_POST['src'])) {
 	if($src == "index") {
 		// json for index page
 		$usnID = $usnName = $usnAdmin = $usnSession = "";
-		if(isset($_SESSION['id'])) { // check if session actually exists.
+		if(isset($_SESSION['id']) && $_SESSION['id'] != "") { // check if session actually exists.
 			$userID = $_SESSION['id'];
 			$userName = $_SESSION['emp-name'];
-			if(isset($_SESSION['admin']))
+			if(isset($_SESSION['admin']) && $_SESSION['admin'] != "")
 				$isAdmin = "true";
 			else
 				$isAdmin = "false";
@@ -68,9 +68,41 @@ if(isset($_POST['src'])) {
 		} else {
 			$_SESSION['error'] = "Unknown login token. Please try to login again later.";
 			$output = array("error" => "1", "message" => "session not found");
-			
 		}
 		//var_dump($output);
+		echo json_encode($output);
+	}
+	
+	if($src == "edit") {
+		if(isset($_SESSION['id']) && $_SESSION['id'] != "") {
+			$usnFirst = $usnLast = $usnName = $usnEmail = $usnAdmin = "NULL";
+			$usnID = $_SESSION['id'];
+			if(isset($_SESSION['admin']) && $_SESSION['admin'] != "")
+				$usnAdmin = "true";
+			else
+				$usnAdmin = "false";
+			if($getUserInfo = $myConn->prepare("SELECT firstName, lastName, userName, email, isAdmin FROM emp_accounts WHERE acctID=? ORDER BY acctID DESC LIMIT 1;")) {
+				$getUserInfo->bind_param("s",$usnID);
+				$getUserInfo->execute();
+				$userInfo = $getUserInfo->get_result();
+				if($userInfo->num_rows > 0) {
+					while($row = $userInfo->fetch_assoc()) {
+						$usnFirst = $row['firstName'];
+						$usnLast = $row['lastName'];
+						$usnName = $row['userName'];
+						$usnEmail = $row['email'];
+					}
+					$output = array("error" => "0", "message" => "OK", "acct-id" => $usnID, "first-name" => $usnFirst, "last-name" => $usnLast, "user-name" => $usnName, "user-email" => $usnEmail, "user-admin" => $usnAdmin);
+				} else {
+					$output = array("error" => "2", "message" => "Unable to fetch data. Error: User not found.");
+				}
+			} else {
+				$output = array("error" => "2", "message" => "Unable to fetch data. Error: " . $myConn->error);
+			}
+		} else {
+			$_SESSION['error'] = "Unknown login token. Please try to login again later.";
+			$output = array("error" => "1", "message" => "session not found");
+		}
 		echo json_encode($output);
 	}
 	
