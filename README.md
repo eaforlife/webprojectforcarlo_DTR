@@ -23,7 +23,7 @@ Used Editor:
 
 # How to install
 *Prerequisite: Install WAMP or XAMPP. Run WAMP or XAMPP, to setup necessary web services, as administrator*
-1. Download as zip from **Clone or Download** or use download using one of the links in the pre-release section.
+1. Download as zip from **Clone or Download** or [click here to navigate to release page and download the latest "pre-release" download](https://github.com/eaforlife/webprojectforcarlo_DTR/releases).
 1. Unzip and extract content to a folder. Name the new folder something short and easy to remember.
 1. Copy the folder you created to your WAMP (```<WAMP Install Directory\www\```) or XAMPP (```<XAMPP Install Directory\htdocs\```).
 1. Open the database folder inside the content of the folder you made in step 2.
