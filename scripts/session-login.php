@@ -27,7 +27,7 @@ if(isset($obj['login-username']) && isset($obj['login-password'])) {
 		$empID = "";
 		$curDt = date('Y-m-d H:i:s');
 		$curD = date('Y-m-d');
-		if($loginQuery = $myConn->prepare("SELECT acctID, firstName, lastName, userName, passWord, isAdmin, status FROM emp_accounts WHERE userName LIKE ? AND passWord=? AND status='1' LIMIT 1;")) {
+		if($loginQuery = $myConn->prepare("SELECT acctID, firstName, lastName, userName, passWord, isAdmin, status FROM emp_accounts WHERE userName LIKE ? AND passWord=? AND status=1 LIMIT 1;")) {
 			$usn = "%$usn%";
 			$loginQuery->bind_param("ss", $usn, $pwd);
 			$loginQuery->execute();
@@ -42,45 +42,32 @@ if(isset($obj['login-username']) && isset($obj['login-password'])) {
 					else
 						$empAdmin = "1";
 				}
-				addtoSession($empID, $empName, $empAdmin);
 			} else {
 				// Username and password not found
 				$json_out = array("error" => "1", "message" => "Invalid username or password. Please try again.");
-				$errorCtr++;
+				//$errorCtr++;
 			}
-			$loginQuery->free_result();
-			$loginQuery->close();
+			$rslt->free_result();
 			
-			$userlogged = 0;
-			
-			/* if($checkUserLog = $myConn->prepare("SELECT empID, timeDateTime, timeMode FROM emp_time WHERE DATE(timeDateTime) = ? AND empID = ? AND timeMode != '1';")) {
-				$checkUserLog->bind_param("ss", $curD, $empID);
-				$checkUserLog->execute();
-				$rsltLog = $checkUserLog->get_result();
-				if($rsltLog->num_rows > 0) {
-					// if user is logged in for the day then do not add log in entry to database.
-					$userlogged = 1;
-				} 
-				$checkUserLog->free_result();
-				$checkUserLog->close();
-			} */
-			
-			if($errorCtr <= 0 && $userlogged == 0) {
-				if($timeIn = $myConn->prepare("INSERT INTO emp_time VALUES (NULL, ?, '0', ?);")) {
-					$timeIn->bind_param('ss', $empID, $curDt);
-					$timeIn->execute();
-					$timeIn->close();
-					$json_out = array("error" => "0", "message" => "NULL");
-				} else {
-					$json_out = array("error" => "1", "message" => "Something went wrong while adding entry to database.");
-				}
-			} else {
-				$json_out = array("error" => "2", "message" => "User is already logged in.");
-			}
 		} else {
 			// Mysql error handling
 			$json_out = array("error" => "1", "message" => "Something went wrong while trying to login. Error: " . $myConn->error);
 		}
+		$loginQuery->close();
+		
+		if(empty($empID)) {
+			$json_out = array("error" => "1", "message" => "Invalid username or password. Please try again.");
+		} else {
+			if($loginUser = $myConn->prepare("INSERT INTO emp_time VALUES (NULL,?,0,?);")) {
+				$loginUser->bind_param("ss", $empID, $curDt);
+				$loginUser->execute();
+				$json_out = array("error" => "0", "message" => "OK.");
+				addtoSession($empID, $empName, $empAdmin);
+			} else {
+				$json_out = array("error" => "1", "message" => "Something went wrong while trying to login. Error: " . $myConn->error);
+			}
+		}
+		$loginUser->close();
 		echo json_encode($json_out);
 	} else {
 		// Username and password from form is empty

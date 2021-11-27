@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<!-- Use of CSS Grid: https://www.w3schools.com/css/css_grid.asp -->
+<html>
+<head>
+	<title>Session Based Attendance - Summary</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="./style/bootstrap.min.css" rel="stylesheet">
+	<link href="./style/fonts/bootstrap-icons.css" rel="stylesheet">
+	<style>
+		body, footer {
+			background-color: #EAF0FA;
+		}
+		#bg-container {
+			height: 380px;
+		}
+		#bg {
+			background-color: black; /* fallback background if image doesn't exist */
+			background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('./style/stock-photo-red-alarm-clock-1124798804.jpg'); /* edit inside url with code for url of background image
+																																					* . dot means up 1 folder level. In other words 2 dots here
+																																					* just means we go to the root directory where the HTML pages are */
+			height: 100%;
+			background-position: center;
+			background-repeat: no-repeat;
+			background-size: cover;
+			position: inherit;
+		}
+	</style>
+</head>
+<body>
+
+<div class="container" id="body">
+	
+	<div class="row"> <!-- Header Image -->
+		<div class="container-fluid m-0 p-0">
+			<div id="bg-container"><div id="bg"></div></div>
+		</div>
+	</div>
+	
+	<div class="row"> <!-- Navigation -->
+		<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow mb-3 rounded">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="./index.php">Attendance System</a>				
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navigationMenu" aria-controls="navigationMenu" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				
+				<div class="collapse navbar-collapse" id="navigationMenu">
+					<div class="navbar-nav me-auto ">
+						<a class="nav-link" aria-current="page" href="./index.php">Home</a>
+						<a class="nav-link active" aria-current="page" href="#">Settings</a>
+						<a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#warning-timeout">Logout <span class="text-capitalize" id="nav-userfullname"></span></a>
+					</div>
+					<span class="navbar-text text-success fw-bold fs-6 d-none" id="user-status-priv">Logged in as Admin</span>
+				</div>
+			</div>
+		</nav>
+	</div>
+	
+	<div class="row bg-light"> <!-- Content -->
+		<div class="container-fluid py-5 shadow mb-2 rounded">
+			<div class="row my-2 p-5">
+				<div class="col-lg text-center">
+					<h2>Login Summary as of <span id="today-date"></span></h2>
+				</div>
+			</div>
+			
+			<div class="row mb-2 p-1">
+				<div class="container">
+					<div class="d-flex justify-content-center align-content-center">
+						<div class="col-md-6">
+							<div class="my-1"><pre id="debug-text"></pre></div>
+						
+							<div class="text-center" id="edit-loading">
+								<div class="spinner-border" role="status" aria-hidden="true"></div>
+								<p><strong>Please Wait...</strong></p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="row mb-2 p-1">
+				<div class="container">
+					<div class="d-flex justify-content-center align-content-center">
+						<div class="col-md-10">
+							<div class="row mb-3">
+								<form>
+									<div class="row g-2">
+										<div class="col-sm-4">
+											<label for="emp-id">Employee ID: </label>
+										</div><div class="col-sm">
+											<select class="form-select" id="emp-id" aria-label="Employee ID">
+											</select>
+										</div>
+									</div>
+								</form>
+							</div>
+							<div class="row">
+							<table class="table table-stripped table-hover summary-table">
+								<thead>
+									<tr>
+										<th scope="col" id="id">Account ID</th>
+										<th scope="col" id="name">Account Name</th>
+										<th scope="col">Status</th>
+										<th scope="col" id="dt">Date Modified</th>
+									</tr>
+								</thead>
+								<tbody id="summary-data"></tbody>
+							</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<footer class="row mt-2 p-5">	<!-- Footer -->
+		<div class="col-12 mx-auto text-center">
+			<p class="text-muted">Session Based Attendance &copy; 2021 | Powered by Bootstrap 5.1</p>
+		</div>
+	</footer>
+	
+</div>
+
+<!-- Modals/Tooltips -->
+<div class="modal fade" id="warning-timeout" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="warning-timeout-title">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="warning-timeout-title"><span class="text-danger"><i class="bi bi-exclamation-circle-fill"></i></span> Are you sure you want to time out?</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				By selecting continue, any session timer that's active on your account will be terminated. Do you wish to continue?
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-danger" id="btn-timeout"><i class="bi bi-exclamation-circle"></i> Continue</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="page-unavailable" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="page-unavailable">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="emp-info-title"><span class="text-warning"><i class="bi bi-tools"></i></span> Page Not Available</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				The page you are trying to view is not available yet.
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Javascript end of page for faster load times -->
+<script src="./scripts/bootstrap.bundle.min.js"></script>
+<script>
+	//console.log("Hello World.");
+	var formDefaults = new Object();
+	const d = new Date();
+	
+	// Initialize Page
+	init();
+	window.onload = function() {
+		
+	  //inactivityTime(); // comment to disable auto logout when idle feature
+	}
+	
+	// Initialize bootstrap utilities
+	var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+	var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+	  return new bootstrap.Popover(popoverTriggerEl)
+	})
+	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+		return new bootstrap.Tooltip(tooltipTriggerEl)
+	})
+	// main functions
+	function init() {
+		document.querySelector("#today-date").innerHTML = d.toDateString();
+		const xhr = new XMLHttpRequest();
+		xhr.onload = function() {
+			console.log(this.responseText);
+			try {
+				var initObj = JSON.parse(this.responseText);
+				console.log(initObj);
+				if(initObj['error'] == "0") {
+					document.querySelector("#nav-userfullname").innerHTML = initObj['user-name'];
+					if(initObj['user-admin'] == "true") {
+						document.querySelector("#user-status-priv").classList.remove("d-none");
+					}
+					
+				} else {
+					console.log(initObj['message']); // debug
+					//window.location.href = "./login.php"; // page should not load if something went wrong here. go back to login page. uncomment after debug
+				}
+				fillFormSelect();
+			} catch(err) {
+				console.log("init error");
+				console.log(err);
+			}
+		}
+		xhr.open("POST", "./scripts/session-init.php", true);
+		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		xhr.send("src=index");
+	}
+	
+	function initmenu(data) {
+		if(data == null)
+			data = "";
+	}
+	
+	function fillFormSelect() {
+		var xhr = new XMLHttpRequest();
+		xhr.onload = function() {
+			document.querySelector("#emp-id").innerHTML = this.responseText;
+		}
+		xhr.open("GET", "./scripts/content.php?src=sel-summary", true);
+		xhr.send();
+	}
+	
+	function fillTable(data, sort) {
+		var sort = "desc";
+		if(data == null) {
+			data = "";
+		} else {
+			//sort = document.querySelector("#"+data).className;
+		}
+		var xhr = new XMLHttpRequest();
+		xhr.onload = function() {
+			document.querySelector("#summary-data").innerHTML = this.responseText;
+		}
+		xhr.open("GET", "./scripts/content.php?src=tbl-summary&data="+data+"&sort="+sort, true);
+		xhr.send();
+	}
+	
+	var inactivityTime = function () {
+		var time;
+		window.onload = resetTimer;
+		// DOM Events
+		document.onmousemove = resetTimer;
+		document.onkeydown = resetTimer;
+
+		function setidle() {
+			var xhr = new XMLHttpRequest();
+			xhr.onload = function() {
+				console.log("idle");
+				console.log(this.responseText);
+				window.location.href = "./login.php";
+			}
+			xhr.open("GET", "./scripts/session-logout.php?src=idle", true);
+			xhr.send();
+		}
+
+		function resetTimer() {
+			clearTimeout(time);
+			time = setTimeout(setidle, 300000) // 5mins or 300,000ms idle
+			// 1000 milliseconds = 1 second
+		}
+	};
+	
+	document.querySelector(".summary-table").addEventListener("click", function(e) {
+		if(e.target.id) {
+			if(e.target.classList.contains("asc")) {
+				e.target.classList.remove("asc");
+				e.target.classList.add("desc");
+			} else {
+				e.target.classList.remove("desc");
+				e.target.classList.add("asc");
+			}
+			fillTable(e.target.id);
+		}
+	});
+	
+	document.querySelector("#emp-id").addEventListener("change", function(e) {
+		//console.log(e.target.value);
+		fillTable(e.target.value, "desc");
+	});
+	
+	document.getElementById("btn-timeout").addEventListener("click", function() {
+		//console.log("Stopped Timer");
+		var xhr = new XMLHttpRequest();
+		xhr.onload = function() {
+			console.log(this.responseText);
+			window.location.href = "./login.php";
+		}
+		xhr.open("GET", "./scripts/session-logout.php", true);
+		xhr.send();
+		//stopSessionTimer();
+	});
+</script>
+</body>
+</html>

@@ -4,20 +4,6 @@ date_default_timezone_set('Asia/Manila');
 require("../myCon.php");
 session_start();
 
-/* $json = file_get_contents('php://input'); 
-$post = json_decode($json, true);
-
-var_dump($json);
-echo "\n";
-var_dump($post);
-echo "\n";
-var_dump($_POST);
-echo "\n";
-var_dump($_SESSION);
-echo "\n";
-echo "test: " . $_POST['src']; 
-echo "\n"; */
-
 if(isset($_POST['src'])) {
 	$src = cleanTxt($_POST['src']);
 	

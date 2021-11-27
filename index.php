@@ -102,7 +102,7 @@
 								</form>
 								<div class="row">
 									<div class="container">
-										<table class="table table-light table-striped">
+										<table class="table table-light table-striped table-hover">
 											<thead>
 												<tr>
 													<th scope="col">Emp No.</th>
@@ -338,7 +338,17 @@
 		refreshTable = setInterval(fillTable(e.target.value), 5000);
 	});
 	
-	document.getElementById("btn-timeout").addEventListener("click", function() {
+	
+	//document.querySelector("#goto-summary").addEventListener("click", function() {
+	//	window.location.href = "./summary.html";
+	//});
+	//document.querySelector("#goto-edit").addEventListener("click", function() {
+	//	window.location.href = "./edit.html";
+	//});
+	//document.querySelector("#goto-tools").addEventListener("click", function() {
+	//	window.location.href = "./tools.html";
+	//});
+	document.querySelector("#btn-timeout").addEventListener("click", function() {
 		//console.log("Stopped Timer");
 		var xhr = new XMLHttpRequest();
 		xhr.onload = function() {
@@ -349,7 +359,7 @@
 		xhr.send();
 		//stopSessionTimer();
 	});
-	document.getElementById("nav-timeout").addEventListener("click", function() {
+	document.querySelector("#nav-timeout").addEventListener("click", function() {
 		//console.log("Stopped Timer");
 		var xhr = new XMLHttpRequest();
 		xhr.onload = function() {

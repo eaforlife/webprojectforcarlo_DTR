@@ -9,21 +9,158 @@ if(isset($_GET['src'])) {
 	if(cleanTxt($_GET['src']) == "menu") {
 		if(isset($_GET['placement'])) {
 			if(cleanTxt($_GET['placement']) == 'index') {
-				if(isset($_SESSION['admin'])) {
+				if(isset($_SESSION['admin']) && !empty($_SESSION['admin'])) {
 					echo "
-					<button type='button' class='btn btn-dark' id='goto-edit'>Edit Profile</button>
-					<button type='button' class='btn btn-dark' data-bs-toggle='modal' data-bs-target='#page-unavailable'>Summary</button>
-					<button type='button' class='btn btn-dark' data-bs-toggle='modal' data-bs-target='#page-unavailable'>Admin Tools</button>
-					<button type='button' class='btn btn-dark'>Log Out</button>
+					<a class='btn btn-dark' href='./edit.html'>Edit Profile</a>
+					<a class='btn btn-dark' href='./summary.html'>Summary</a>
+					<a class='btn btn-dark' href='./tools.html'>Admin Tools</a>
+					<a class='btn btn-dark' href='#' data-bs-toggle='modal' data-bs-target='#warning-timeout'>Log Out</a>
 					";
 				} else {
 					echo "
-					<button type='button' class='btn btn-dark' id='goto-edit'>Edit Profile</button>
-					<button type='button' class='btn btn-dark' data-bs-toggle='modal' data-bs-target='#page-unavailable'>Summary</button>
-					<button type='button' class='btn btn-dark'>Log Out</button>
+					<a class='btn btn-dark' href='./edit.html'>Edit Profile</a>
+					<a class='btn btn-dark' href='./summary.html'>Summary</a>
+					<a class='btn btn-dark' href='#' data-bs-toggle='modal' data-bs-target='#warning-timeout'>Log Out</a>
 					";
 				}
 			}
+		}
+	}
+	
+	if(!empty(cleanTxt($_GET['src']) && cleanTxt($_GET['src']) == "sel-summary")) {
+		echo "<option value='all' id='all' selected>All</option>";
+		if($empList = $myConn->prepare("SELECT acctID, firstName, lastName FROM emp_accounts WHERE status='1' ORDER BY acctID ASC;")) {
+			$empList->execute();
+			$resultList = $empList->get_result();
+			if($resultList->num_rows > 0) {
+				while($row = $resultList->fetch_assoc()) {
+					echo "<option value='" . $row['acctID'] . "'>" . $row['acctID'] . " - " . ucfirst($row['firstName']) . " " . ucfirst($row['lastName']) . "</option>";
+				}
+			}
+		}
+	}
+	
+	if(!empty(cleanTxt($_GET['src']) && cleanTxt($_GET['src']) == "tbl-summary")) {
+		if(isset($_SESSION['admin']) && !empty($_SESSION['admin'])) {
+			// if admin show all accounts
+			
+			if(isset($_GET['data']) || !empty(cleanTxt($_GET['data']))) {
+				$data = cleanTxt($_GET['data']);
+				$sort = cleanTxt($_GET['sort']);
+				if($sort == "asc") {
+					if($data == "id") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) ORDER BY a.acctID ASC;");
+					} elseif($data == "name") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) ORDER BY a.firstName ASC;");
+					} elseif($data == "dt") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) ORDER BY b.timeID ASC;");
+					} elseif($data == "all") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) ORDER BY b.timeID ASC;");
+					} else {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) AND a.acctID=? ORDER BY b.timeID ASC;");
+						$empQuery->bind_param("s",$data);
+					}
+				} else {
+					if($data == "id") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) ORDER BY a.acctID DESC;");
+					} elseif($data == "name") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) ORDER BY a.firstName DESC;");
+					} elseif($data == "dt") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) ORDER BY b.timeID DESC;");
+					} elseif($data == "all") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) ORDER BY b.timeID DESC;");
+					} else {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) AND a.acctID=? ORDER BY b.timeID DESC;");
+						$empQuery->bind_param("s",$data);
+					}
+				}
+				$empQuery->execute();
+				$resultEmp = $empQuery->get_result();
+				if($resultEmp->num_rows > 0) {
+					while($row = $resultEmp->fetch_assoc()) {
+						$timeDt = new DateTime($row['timeDateTime']);
+						$newTime = date_format($timeDt, "g:i:s A");
+						echo "<tr>
+							<td>" . $row['acctID'] . "</td>
+							<td>" . $row['firstName'] . " " . $row['lastName'] . "</td>";
+						if($row['timeMode'] == "0") {
+							echo "<td>Online</td>";
+						} elseif($row['timeMode'] == "2") {
+							echo "<td>Idle</td>";
+						} else {
+							echo "<td>Offline</td>";
+						}
+							
+						echo "<td>" . $newTime . "</td>
+						</tr>";
+					}
+					$resultEmp->free_result();
+				} else {
+					echo "<p><strong>No data to show.</strong></p>";
+				}
+				$empQuery->close();
+			}
+		} else {
+			
+			if(isset($_GET['data']) || !empty(cleanTxt($_GET['data']))) {
+				$data = cleanTxt($_GET['data']);
+				$sort = cleanTxt($_GET['sort']);
+				if($sort == "asc") {
+					if($data == "id") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) AND a.acctID=? ORDER BY a.acctID ASC;");
+						$empQuery->bind_param("s",$_SESSION['id']);
+					} elseif($data == "name") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) AND a.acctID=? ORDER BY a.firstName ASC;");
+						$empQuery->bind_param("s",$_SESSION['id']);
+					} elseif($data == "dt") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) AND a.acctID=? ORDER BY b.timeID ASC;");
+						$empQuery->bind_param("s",$_SESSION['id']);
+					} else {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) AND a.acctID=? ORDER BY b.timeID ASC;");
+						$empQuery->bind_param("s",$_SESSION['id']);
+					}
+				} else {
+					if($data == "id") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) AND a.acctID=? ORDER BY a.acctID DESC;");
+						$empQuery->bind_param("s",$_SESSION['id']);
+					} elseif($data == "name") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) AND a.acctID=? ORDER BY a.firstName DESC;");
+						$empQuery->bind_param("s",$_SESSION['id']);
+					} elseif($data == "dt") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) AND a.acctID=? ORDER BY b.timeID DESC;");
+						$empQuery->bind_param("s",$_SESSION['id']);
+					} else {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, b.timeMode, b.timeDateTime FROM emp_accounts a RIGHT JOIN emp_time b ON a.acctID=b.empID WHERE a.status='1' AND DATE(NOW()) = DATE(b.timeDateTime) AND a.acctID=? ORDER BY b.timeID DESC;");
+						$empQuery->bind_param("s",$_SESSION['id']);
+					}
+				}
+				$empQuery->execute();
+				$resultEmp = $empQuery->get_result();
+				if($resultEmp->num_rows > 0) {
+					while($row = $resultEmp->fetch_assoc()) {
+						$timeDt = new DateTime($row['timeDateTime']);
+						$newTime = date_format($timeDt, "g:i:s A");
+						echo "<tr>
+							<td>" . $row['acctID'] . "</td>
+							<td>" . $row['firstName'] . " " . $row['lastName'] . "</td>";
+						if($row['timeMode'] == "0") {
+							echo "<td>Online</td>";
+						} elseif($row['timeMode'] == "2") {
+							echo "<td>Idle</td>";
+						} else {
+							echo "<td>Offline</td>";
+						}
+							
+						echo "<td>" . $newTime . "</td>
+						</tr>";
+					}
+					$resultEmp->free_result();
+				} else {
+					echo "<p><strong>No data to show.</strong></p>";
+				}
+				$empQuery->close();
+			}
+			
 		}
 	}
 	
@@ -33,7 +170,7 @@ if(isset($_GET['src'])) {
 			$usn = cleanTxt($_GET['data']);
 			$curD = date('Y-m-d');
 			
-			if($empQuery = $myConn->prepare("SELECT b.acctID, b.firstName, b.lastName, a.timeMode, a.timeDateTime, MAX(a.timeMode) as currentMode, (SELECT timeDateTime FROM emp_time WHERE DATE(timeDateTime) = DATE(NOW()) AND empID = ? AND timeMode = 0 ORDER BY timeID ASC LIMIT 1) as lastOnline FROM emp_time a, emp_accounts b WHERE DATE(a.timeDateTime) = DATE(NOW()) AND a.empID = ? AND a.empID = b.acctID ORDER BY a.timeID DESC LIMIT 1;")) {
+			if($empQuery = $myConn->prepare("SELECT b.acctID, b.firstName, b.lastName, a.timeMode, a.timeDateTime, (SELECT timeDateTime FROM emp_time WHERE DATE(timeDateTime) = DATE(NOW()) AND empID = ? AND timeMode = 0 ORDER BY timeID ASC LIMIT 1) as lastOnline FROM emp_time a, emp_accounts b WHERE DATE(a.timeDateTime) = DATE(NOW()) AND a.empID = ? AND a.empID = b.acctID ORDER BY a.timeID DESC LIMIT 1;")) {
 				$empQuery->bind_param("ss", $usn, $usn);
 				$empQuery->execute();
 				$empOut = $empQuery->get_result();
@@ -42,7 +179,7 @@ if(isset($_GET['src'])) {
 					while($row = $empOut->fetch_assoc()) {
 						echo "<p>Employee ID: <span class='font-monospace'>" . $row['acctID'] . "</span></p>
 					<p>Employee Name: <span class='font-monospace'>" . $row['firstName'] . " " . $row['lastName'] . "</span></p>";
-						if($row['currentMode'] == "0") {
+						if($row['timeMode'] == "0") {
 							$startDate = new DateTime($row['lastOnline']);
 							$currentDate = new DateTime();
 							$diff = date_diff($startDate, $currentDate);
@@ -50,7 +187,7 @@ if(isset($_GET['src'])) {
 							echo "<p>Online at: <span class='font-monospace'>" . date_format($startDate, "g:i:s a") . "</span></p>";
 							echo "<p>Total Session: <span class='font-monospace'>" . $diff->format('%H:%I:%S') . "</span></p>";
 						}
-						if($row['currentMode'] == "1") {
+						if($row['timeMode'] == "1") {
 							$startDate = new DateTime($row['lastOnline']);
 							$endDate = new DateTime($row['timeDateTime']);
 							$diff = date_diff($startDate, $endDate);
@@ -58,7 +195,7 @@ if(isset($_GET['src'])) {
 							echo "<p>Online at: <span class='font-monospace'>" . date_format($startDate, "g:i:s a") . "</span></p>";
 							echo "<p>Total Session: <span class='font-monospace'>" . $diff->format('%H:%I:%S') . "</span></p>";
 						}
-						if($row['currentMode'] == "2") {
+						if($row['timeMode'] == "2") {
 							$startDate = new DateTime($row['lastOnline']);
 							$endDate = new DateTime($row['timeDateTime']);
 							$diff = date_diff($startDate, $endDate);

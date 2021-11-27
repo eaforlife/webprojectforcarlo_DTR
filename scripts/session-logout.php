@@ -33,17 +33,38 @@
 		if(isset($_SESSION['id'])) {
 			// todo: add to database
 			$empID = $_SESSION['id'];
+			$isloggedout = 0;
+			$currD = date('Y-m-d');
 			$currDT = date('Y-m-d H:i:s');
-			if($logoutQuery  = $myConn->prepare("INSERT INTO emp_time VALUES (NULL,?,1,?);")) {
-				$logoutQuery->bind_param("ss", $empID, $currDT);
-				$logoutQuery->execute();
+			if($checkStatus = $myConn->prepare("SELECT timeMode FROM emp_time WHERE empID=? AND DATE(timeDateTime)=? AND timeMode=1 ORDER BY timeID DESC LIMIT 1;")) {
+				$checkStatus->bind_param("ss", $empID, $currD);
+				$checkStatus->execute();
+				$result = $checkStatus->get_result();
+				if($result->num_rows > 0) {
+					$isloggedout = 1;
+				} else {
+					$isloggedout = 0;
+				}
+			}
+			$checkStatus->close();
+			
+			if($isloggedout == 0) {
+				if($logoutQuery  = $myConn->prepare("INSERT INTO emp_time VALUES (NULL,?,1,?);")) {
+					$logoutQuery->bind_param("ss", $empID, $currDT);
+					$logoutQuery->execute();
+					session_unset();
+					session_destroy();
+					$output = array("status" => "OK - logout set");
+				} else {
+					$output = array("status" => "Database Error: " . $myConn->error);
+				}
+				$logoutQuery->close();
+			} else {
 				session_unset();
 				session_destroy();
-				$output = array("status" => "OK");
-			} else {
-				$output = array("status" => "Database Error: " . $myConn->error);
+				$output = array("status" => "OK - logout not set");
 			}
-			$logoutQuery->close();
+			
 			echo json_encode($output);
 		}
 	}

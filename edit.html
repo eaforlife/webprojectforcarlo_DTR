@@ -68,9 +68,7 @@
 			<div class="row mb-2 p-1">
 				<div class="container">
 					<div class="d-flex justify-content-center align-content-center">
-						<div class="col-md-6">
-							<div class="my-5"><pre id="debug-text"></pre></div>
-						
+						<div class="col-md-6">						
 							<div class="text-center" id="edit-loading">
 								<div class="spinner-border" role="status" aria-hidden="true"></div>
 								<p><strong>Please Wait...</strong></p>
@@ -82,7 +80,7 @@
 										<label for="emp-id" class="form-label">Employee ID</label>
 									</div>
 									<div class="col-sm">
-										<input type="text" class="form-control" id="emp-id" name="emp-id" placeholder="Employee ID" disabled>
+										<input type="text" class="form-control" id="emp-id" name="emp-id" placeholder="Employee ID" readonly>
 									</div>
 								</div>
 								<div class="row g-2 align-items-center my-2">
@@ -214,6 +212,22 @@
 		</div>
 	</div>
 </div>
+<div class="modal fade" id="page-available" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="page-available">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="emp-info-title"><span class="text-warning"><i class="bi bi-tools"></i></span> Page Not Available</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				The page you are trying to view is not available yet.
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
 
 <!-- Javascript end of page for faster load times -->
 <script src="./scripts/bootstrap.bundle.min.js"></script>
@@ -224,18 +238,21 @@
 	// Initialize Page
 	init();
 	window.onload = function() {
-	  //inactivityTime(); // comment to disable auto logout when idle feature
+	  inactivityTime(); // comment to disable auto logout when idle feature
 	}
 	
 	// Initialize bootstrap utilities
 	var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
 	var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
 	  return new bootstrap.Popover(popoverTriggerEl)
-	})
+	});
 	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
 	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
 		return new bootstrap.Tooltip(tooltipTriggerEl)
-	})
+	});
+	var errModal = new bootstrap.Modal(document.querySelector("#page-unavailable"));
+	var okModal = new bootstrap.Modal(document.querySelector("#page-available"));
+	
 	// main functions
 	function init() {
 		const xhr = new XMLHttpRequest();
@@ -280,6 +297,9 @@
 		document.querySelector("#emp-lname").value = formDefaults['last-name'];
 		document.querySelector("#emp-email").value = formDefaults['user-email'];
 		document.querySelector("#emp-username").value = formDefaults['user-name'];
+		document.querySelector("#emp-old-pass").value = "";
+		document.querySelector("#emp-new-pass").value = "";
+		document.querySelector("#emp-new-pass-confirm").value = "";
 	}
 	
 	function submitForm() {
@@ -288,38 +308,54 @@
 		var editForm = document.querySelector("#form-edit");
 		var data = new FormData(editForm);
 		xhr.onload = function() {
-			var formvalidation = JSON.parse(this.responseText);
-			console.log(this.responseText);
-			if(formvalidation['type'] == 'validation') {
-				if(!("error" in formvalidation)) {
-				//document.querySelector('input').classList.remove("is-invalid");
-				for(var i of document.querySelectorAll("#form-edit input")) {
-					//console.log(i.id);
-					i.classList.remove("is-valid");
-					i.classList.remove("is-invalid");
-				}
-				console.log("No error");
-				} else {
-					delete formvalidation['error'];
-					for(var i of document.querySelectorAll("#form-edit input")) {
-						i.classList.add("is-valid");
-						Object.keys(formvalidation).forEach(function(k) {
-							document.querySelector("#form-edit #" + k).classList.remove("is-valid");
-							document.querySelector("#form-edit #" + k).classList.add("is-invalid");
-						});
+			try {
+				var formvalidation = JSON.parse(this.responseText);
+				console.log(this.responseText);
+				if(formvalidation['error'] == "1") {
+					if(formvalidation['msg'] == "validation") {
+						delete formvalidation['error'];
+						delete formvalidation['msg'];
+						for(var i of document.querySelectorAll("#form-edit input")) {
+							i.classList.add("is-valid");
+							Object.keys(formvalidation).forEach(function(k) {
+								document.querySelector("#form-edit #" + k).classList.remove("is-valid");
+								document.querySelector("#form-edit #" + k).classList.add("is-invalid");
+								document.querySelector("#form-edit #" + k).value = "";
+							});
+						}
+					} else {
+						document.querySelector("#page-unavailable #emp-info-title").innerHTML = "<i class='bi bi-tools'></i> Problem(s) found!";
+						document.querySelector("#page-unavailable .modal-body").innerHTML = formvalidation['msg'];
+						setFormDefault();
+						errModal.toggle();
 					}
-					/* Object.keys(formvalidation).forEach(function(k) {
-						document.querySelector("#form-edit #" + k).value = "";
-						document.querySelector("#form-edit #" + k).classList.add("is-invalid");
-					}); */
+				} else {
+					document.querySelector("form").classList.add("d-none");
+					document.querySelector("#page-available #emp-info-title").innerHTML = "Profile Updated Successfully!";
+					document.querySelector("#page-available .modal-body").innerHTML = formvalidation['msg'] + " You will need to login again to apply changes.";
+					setFormDefault();
+					okModal.toggle();
+					//formLogout();
 				}
-				//document.querySelector("#debug-text").innerHTML = this.responseText;
-			}
 			
+			} catch(err) {
+				console.log("error?");
+				console.log(err);
+			}
 		}
-		xhr.open("POST","./scripts/form-validation.php",true);
+		xhr.open("POST","./scripts/form-validation.php?src=edit",true);
 		//xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 		xhr.send(data);
+	}
+	
+	function formLogout() {
+		var xhr = new XMLHttpRequest();
+		xhr.onload = function() {
+			console.log(this.responseText);
+			window.location.href = "./login.php";
+		}
+		xhr.open("GET", "./scripts/session-logout.php", true);
+		xhr.send();
 	}
 	
 	function initmenu(data) {
@@ -352,9 +388,14 @@
 		}
 	};
 	
-	document.querySelector("input").addEventListener("change", function(e) {
-		console.log(e.target.value);
-	}, false);
+	document.querySelector("#page-available").addEventListener("hidden.bs.modal", function() {
+		formLogout();
+	});
+	
+	document.querySelector("#form-edit").addEventListener("keypress", function(e) {
+		e.target.classList.remove("is-valid");
+		e.target.classList.remove("is-invalid");
+	});
 	
 	document.querySelector("#form-edit").addEventListener("submit", function(e) {
 		submitForm();

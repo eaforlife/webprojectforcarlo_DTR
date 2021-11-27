@@ -84,9 +84,9 @@
 	destroySession();
 	showError();
 	
-	loginInput.addEventListener("change", function() {
+	loginInput.addEventListener("keypress", function(e) {
 		// remove any validation control when input is detected
-		this.classList.remove("is-invalid");
+		e.target.classList.remove("is-invalid");
 	});
 	
 	loginForm.addEventListener("reset", function() {
@@ -101,8 +101,8 @@
 		frmData = JSON.stringify(Object.fromEntries(frmData));
 		
 		xhr.onload = function() {
+			console.log(this.responseText);
 			jsonObj = JSON.parse(this.responseText);
-			console.log(jsonObj);
 			if(jsonObj['error'] != "1") {
 				loginForm.classList.add("d-none");
 				var divSuccess = document.querySelector(".login-success");
