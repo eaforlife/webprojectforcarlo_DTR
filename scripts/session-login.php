@@ -66,8 +66,9 @@ if(isset($obj['login-username']) && isset($obj['login-password'])) {
 			} else {
 				$json_out = array("error" => "1", "message" => "Something went wrong while trying to login. Error: " . $myConn->error);
 			}
+			$loginUser->close();
 		}
-		$loginUser->close();
+		
 		echo json_encode($json_out);
 	} else {
 		// Username and password from form is empty

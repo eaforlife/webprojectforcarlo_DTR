@@ -69,8 +69,6 @@
 				<div class="container">
 					<div class="d-flex justify-content-center align-content-center">
 						<div class="col-md-6">
-							<div class="my-1"><pre id="debug-text"></pre></div>
-						
 							<div class="text-center" id="edit-loading">
 								<div class="spinner-border" role="status" aria-hidden="true"></div>
 								<p><strong>Please Wait...</strong></p>
@@ -85,7 +83,7 @@
 					<div class="d-flex justify-content-center align-content-center">
 						<div class="col-md-10">
 							<div class="row mb-3">
-								<form>
+								<form id="sch-emp">
 									<div class="row g-2">
 										<div class="col-sm-4">
 											<label for="emp-id">Employee ID: </label>
@@ -97,17 +95,19 @@
 								</form>
 							</div>
 							<div class="row">
-							<table class="table table-stripped table-hover summary-table">
-								<thead>
-									<tr>
-										<th scope="col" id="id">Account ID</th>
-										<th scope="col" id="name">Account Name</th>
-										<th scope="col">Status</th>
-										<th scope="col" id="dt">Date Modified</th>
-									</tr>
-								</thead>
-								<tbody id="summary-data"></tbody>
-							</table>
+								<div class="table-responsive-md" style="max-height:400px; overflow-y:auto;">
+									<table class="table table-stripped table-hover summary-table">
+										<thead>
+											<tr>
+												<th scope="col" id="id">Account ID</th>
+												<th scope="col" id="name">Account Name</th>
+												<th scope="col">Status</th>
+												<th scope="col" id="dt">Date Modified</th>
+											</tr>
+										</thead>
+										<tbody id="summary-data"></tbody>
+									</table>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -165,6 +165,7 @@
 <script>
 	//console.log("Hello World.");
 	var formDefaults = new Object();
+	var tblsummary;
 	const d = new Date();
 	
 	// Initialize Page
@@ -196,13 +197,19 @@
 					document.querySelector("#nav-userfullname").innerHTML = initObj['user-name'];
 					if(initObj['user-admin'] == "true") {
 						document.querySelector("#user-status-priv").classList.remove("d-none");
+					} else {
+						//window.location.href = "./index.php";
+						document.querySelector("#sch-emp").disabled = true;
+						document.querySelector("#sch-emp").classList.add("d-none");
 					}
 					
 				} else {
 					console.log(initObj['message']); // debug
-					//window.location.href = "./login.php"; // page should not load if something went wrong here. go back to login page. uncomment after debug
+					window.location.href = "./login.php"; // page should not load if something went wrong here. go back to login page. uncomment after debug
 				}
 				fillFormSelect();
+				fillTable("all");
+				tblsummary = setInterval(fillTable("all"),5000);
 			} catch(err) {
 				console.log("init error");
 				console.log(err);
@@ -228,18 +235,24 @@
 	}
 	
 	function fillTable(data, sort) {
-		var sort = "desc";
+		document.querySelector("#edit-loading").classList.remove("d-none");
 		if(data == null) {
 			data = "";
-		} else {
-			//sort = document.querySelector("#"+data).className;
+		}
+		if(sort == null) {
+			sort = "desc";
 		}
 		var xhr = new XMLHttpRequest();
 		xhr.onload = function() {
 			document.querySelector("#summary-data").innerHTML = this.responseText;
+			document.querySelector("#edit-loading").classList.add("d-none");
 		}
 		xhr.open("GET", "./scripts/content.php?src=tbl-summary&data="+data+"&sort="+sort, true);
 		xhr.send();
+	}
+	
+	function stopTableTimer() {
+		clearInterval(tblsummary);
 	}
 	
 	var inactivityTime = function () {
@@ -269,20 +282,27 @@
 	
 	document.querySelector(".summary-table").addEventListener("click", function(e) {
 		if(e.target.id) {
+			stopTableTimer();
 			if(e.target.classList.contains("asc")) {
 				e.target.classList.remove("asc");
 				e.target.classList.add("desc");
+				fillTable(e.target.id,"desc");
+				tblsummary = setInterval(fillTable(e.target.id,"desc"),5000);
 			} else {
 				e.target.classList.remove("desc");
 				e.target.classList.add("asc");
+				fillTable(e.target.id,"asc");
+				tblsummary = setInterval(fillTable(e.target.id,"asc"),5000);
 			}
-			fillTable(e.target.id);
+			
 		}
 	});
 	
 	document.querySelector("#emp-id").addEventListener("change", function(e) {
 		//console.log(e.target.value);
+		stopTableTimer();
 		fillTable(e.target.value, "desc");
+		tblsummary = setInterval(fillTable(e.target.value,"desc"),5000);
 	});
 	
 	document.getElementById("btn-timeout").addEventListener("click", function() {

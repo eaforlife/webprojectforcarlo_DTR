@@ -27,6 +27,137 @@ if(isset($_GET['src'])) {
 		}
 	}
 	
+	if(!empty(cleanTxt($_GET['src']) && cleanTxt($_GET['src']) == "tbl-edit-emp")) {
+		if(isset($_GET['data']) && !empty(cleanTxt($_GET['data']))) {
+			$data = cleanTxt($_GET['data']);
+			$output = [];
+			if($fetchEmp = $myConn->prepare("SELECT * FROM emp_accounts WHERE acctID=? AND status='1';")) {
+				$fetchEmp->bind_param("s",$data);
+				$fetchEmp->execute();
+				$empResult = $fetchEmp->get_result();
+				if($empResult->num_rows > 0) {
+					while($row = $empResult->fetch_assoc()) {
+						$output['emp-id'] = $row['acctID'];
+						$output['fname'] = $row['firstName'];
+						$output['lname'] = $row['lastName'];
+						$output['email'] = $row['email'];
+					}
+					$output['error'] = "0";
+					$output['error-message'] = "OK";
+				} else {
+					$output['error'] = "1";
+					$output['error-message'] = "Employee Not Found";
+				}
+				$empResult->free_result();
+			} else {
+				$output['error'] = "1";
+				$output['error-message'] = "Database error: " . $myConn->error;
+			}
+			$fetchEmp->close();
+		} else {
+			$output['error'] = "1";
+			$output['error-message'] = "Invalid input data";
+		}
+		echo json_encode($output);
+	}
+	
+	if(!empty(cleanTxt($_GET['src']) && cleanTxt($_GET['src']) == "tbl-admintools")) {
+		if(isset($_SESSION['admin']) && !empty($_SESSION['admin'])) {
+			$data = $sort = $sortby = "";
+			$currentID = $_SESSION['id'];
+			if(isset($_GET['data']) && !empty(cleanTxt($_GET['data']))) {
+				$data = cleanTxt($_GET['data']);
+			}
+			if(isset($_GET['sort']) && !empty(cleanTxt($_GET['sort']))) {
+				$sort = strtoupper(cleanTxt($_GET['sort']));
+			} else {
+				$sort = "DESC";
+			}
+			if(isset($_GET['sortby']) && !empty(cleanTxt($_GET['sortby']))) {
+				$sortby = cleanTxt($_GET['sortby']);
+			}
+			
+			if(empty($data)) {
+				if($sort == "DESC") {
+					if($sortby == "fname") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, a.email, (SELECT timeDateTime FROM emp_time WHERE empID=a.acctID AND timeMode='0' ORDER BY timeID DESC LIMIT 1) as lastOnline FROM emp_accounts a WHERE a.status='1' ORDER BY a.firstName DESC;");
+					} elseif($sortby == "lname") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, a.email, (SELECT timeDateTime FROM emp_time WHERE empID=a.acctID AND timeMode='0' ORDER BY timeID DESC LIMIT 1) as lastOnline FROM emp_accounts a WHERE a.status='1' ORDER BY a.lastName DESC;");
+					} else {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, a.email, (SELECT timeDateTime FROM emp_time WHERE empID=a.acctID AND timeMode='0' ORDER BY timeID DESC LIMIT 1) as lastOnline FROM emp_accounts a WHERE a.status='1' ORDER BY a.acctID DESC;");
+					}
+				} else {
+					if($sortby == "fname") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, a.email, (SELECT timeDateTime FROM emp_time WHERE empID=a.acctID AND timeMode='0' ORDER BY timeID DESC LIMIT 1) as lastOnline FROM emp_accounts a WHERE a.status='1' ORDER BY a.firstName ASC;");
+					} elseif($sortby == "lname") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, a.email, (SELECT timeDateTime FROM emp_time WHERE empID=a.acctID AND timeMode='0' ORDER BY timeID DESC LIMIT 1) as lastOnline FROM emp_accounts a WHERE a.status='1' ORDER BY a.lastName ASC;");
+					} else {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, a.email, (SELECT timeDateTime FROM emp_time WHERE empID=a.acctID AND timeMode='0' ORDER BY timeID DESC LIMIT 1) as lastOnline FROM emp_accounts a WHERE a.status='1' ORDER BY a.acctID ASC;");
+					}
+				}
+			} else {
+				if($sort == "DESC") {
+					if($sortby == "fname") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, a.email, (SELECT timeDateTime FROM emp_time WHERE empID=a.acctID AND timeMode='0' ORDER BY timeID DESC LIMIT 1) as lastOnline FROM emp_accounts a WHERE a.acctID=? AND a.status='1' ORDER BY a.firstName DESC;");
+						$empQuery->bind_param("s",$data);
+					} elseif($sortby == "lname") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, a.email, (SELECT timeDateTime FROM emp_time WHERE empID=a.acctID AND timeMode='0' ORDER BY timeID DESC LIMIT 1) as lastOnline FROM emp_accounts a WHERE a.acctID=? AND a.status='1' ORDER BY a.lastName DESC;");
+						$empQuery->bind_param("s",$data);
+					} else {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, a.email, (SELECT timeDateTime FROM emp_time WHERE empID=a.acctID AND timeMode='0' ORDER BY timeID DESC LIMIT 1) as lastOnline FROM emp_accounts a WHERE a.acctID=? AND a.status='1' ORDER BY a.acctID DESC;");
+						$empQuery->bind_param("s",$data);
+					}
+				} else {
+					if($sortby == "fname") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, a.email, (SELECT timeDateTime FROM emp_time WHERE empID=a.acctID AND timeMode='0' ORDER BY timeID DESC LIMIT 1) as lastOnline FROM emp_accounts a WHERE a.acctID=? AND a.status='1' ORDER BY a.firstName ASC;");
+						$empQuery->bind_param("s",$data);
+					} elseif($sortby == "lname") {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, a.email, (SELECT timeDateTime FROM emp_time WHERE empID=a.acctID AND timeMode='0' ORDER BY timeID DESC LIMIT 1) as lastOnline FROM emp_accounts a WHERE a.acctID=? AND a.status='1' ORDER BY a.lastName ASC;");
+						$empQuery->bind_param("s",$data);
+					} else {
+						$empQuery = $myConn->prepare("SELECT a.acctID, a.firstName, a.lastName, a.email, (SELECT timeDateTime FROM emp_time WHERE empID=a.acctID AND timeMode='0' ORDER BY timeID DESC LIMIT 1) as lastOnline FROM emp_accounts a WHERE a.acctID=? AND a.status='1' ORDER BY a.acctID ASC;");
+						$empQuery->bind_param("s",$data);
+					}
+				}
+			}
+			if($empQuery) {
+				$empQuery->execute();
+				$empRslt = $empQuery->get_result();
+				if($empRslt->num_rows > 0) {
+					while($row = $empRslt->fetch_assoc()) {
+						$timeDt = new DateTime($row['lastOnline']);
+						$newTime = date_format($timeDt, "t M Y g:i:s A");
+						$empName = ucfirst($row['firstName']) . " " . ucfirst($row['lastName']);
+						echo "<tr>
+							<td>" . $row['acctID'] . "</td>
+							<td>" . $empName . "</td>
+							<td>" . $row['email'] . "</td>
+							<td>" . $newTime . "</td>
+							<td>
+								<div class='btn-group'>";
+						if($row['acctID'] == $currentID) {
+							echo "<a href='#' class='btn btn-outline disabled'><i class='bi bi-pencil-square'></i></a>
+									<a href='#' class='btn btn-outline disabled' alt='Delete'><i class='bi bi-trash'></i></a>";
+						} else {
+							echo "<a href='#' class='btn btn-outline' alt='Edit'><i class='bi bi-pencil-square' id='tbl-edit' data-employee='" . $row['acctID'] . "'></i></a>
+									<a href='#' class='btn btn-outline' alt='Delete'><i class='bi bi-trash' id='tbl-delete' data-employee='" . $row['acctID'] . "'></i></a>";
+						}
+						echo "</div>
+							</td>
+						</tr>";
+						
+					}
+				} else {
+					echo "<h4><span class='text-warning'><i class='bi bi-exclamation-diamond-fill'></i></span> Employee Info Not Found!</h4>";
+				}
+				$empRslt->free_result();
+			} else {
+				echo "<h4><span class='text-danger'><i class='bi bi-exclamation-diamond-fill'></i></span> Unable to fetch data.!</h4><pre>" . $myConn->error . "</pre>";
+			}
+			$empQuery->close();
+		}
+	}
+	
 	if(!empty(cleanTxt($_GET['src']) && cleanTxt($_GET['src']) == "sel-summary")) {
 		echo "<option value='all' id='all' selected>All</option>";
 		if($empList = $myConn->prepare("SELECT acctID, firstName, lastName FROM emp_accounts WHERE status='1' ORDER BY acctID ASC;")) {
@@ -37,7 +168,9 @@ if(isset($_GET['src'])) {
 					echo "<option value='" . $row['acctID'] . "'>" . $row['acctID'] . " - " . ucfirst($row['firstName']) . " " . ucfirst($row['lastName']) . "</option>";
 				}
 			}
+			$resultList->free_result();
 		}
+		$empList->close();
 	}
 	
 	if(!empty(cleanTxt($_GET['src']) && cleanTxt($_GET['src']) == "tbl-summary")) {

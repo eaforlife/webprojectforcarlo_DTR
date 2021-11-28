@@ -69,6 +69,138 @@
 			//var_dump($update);
 		}
 	}
+	
+	if(isset($_GET['src']) && $_GET['src'] == 'admin-edit') {
+		$fields = ['frm-emp-id','frm-emp-fname','frm-emp-lname','frm-emp-email'];
+		
+		if($_SERVER["REQUEST_METHOD"] == "POST") {
+			foreach($fields as $input) {
+				if(empty($_POST[$input])) {
+					$err[$input] = $input;
+				} else {
+					$update[$input] = $_POST[$input];
+				}
+			}
+			
+			if(count($err) > 0) {
+				$output = $err;
+				$output['error'] = "1";
+				$output['error-message'] = "validation";
+			} else {
+				if(updateUserAdmin($update)) {
+					$output['error'] = "0";
+				} else {
+					$output['error'] = "1";
+					$output = $update;
+				}
+			}
+			echo json_encode($output);
+		}
+	}
+	
+	if(isset($_GET['src']) && $_GET['src'] == 'resetpass') {
+		if($_SERVER["REQUEST_METHOD"] == "POST") {
+			if(!empty($_POST['frm-emp-id'])) {
+				$empid = cleanTxt($_POST['frm-emp-id']);
+				$dt = date("Ymdgis");
+				$newpass = $dt . $empid;
+				$newpass = md5($newpass);
+				$newpass = substr($newpass, 0, 8);
+				$dbpass = md5($newpass);
+				
+				if($resetPass = $myConn->prepare("UPDATE emp_accounts SET passWord=? WHERE acctID=?;")) {
+					$resetPass->bind_param("ss", $dbpass, $empid);
+					$resetPass->execute();
+					$output['error'] = "0";
+					$output['error-message'] = "Successfully updated password for Employee " . $empid . ". New password: <pre>" . $newpass . "</pre>";
+				} else {
+					$output['error'] = "1";
+					$output['error-message'] = "Unable to update with error: " . $myConn->error;
+				}
+				$resetPass->close();
+			} else {
+				$output['error'] = "1";
+				$output['error-message'] = "Unknown employee";
+			}
+			echo json_encode($output);
+		}
+	}
+	
+	function updateUserAdmin($update) {
+		global $myConn;
+		
+		$toChange = [];
+		if($checkUser = $myConn->prepare("SELECT firstName, lastName, email FROM emp_accounts WHERE acctID=?;")) {
+			$checkUser->bind_param("s",$update['frm-emp-id']);
+			$checkUser->execute();
+			$resultcheckUser = $checkUser->get_result();
+			if($resultcheckUser->num_rows > 0) {
+				while($row = $resultcheckUser->fetch_assoc()) {
+					if($row['firstName'] != $update['frm-emp-fname']) {
+						$toChange['emp-fname'] = $update['frm-emp-fname'];
+					}
+					if($row['lastName'] != $update['frm-emp-lname']) {
+						$toChange['emp-lname'] = $update['frm-emp-lname'];
+					}
+					if($row['email'] != $update['frm-emp-email']) {
+						$toChange['emp-email'] = $update['frm-emp-email'];
+					}
+				}
+			}
+			$resultcheckUser->free_result();
+		}
+		$checkUser->close();
+		
+		if(count($toChange) > 0) {
+			if(array_key_exists("frm-emp-fname", $toChange) && !array_key_exists("frm-emp-lname", $toChange) && !array_key_exists("frm-emp-email", $toChange)) {
+				// fname
+				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET firstName=? WHERE acctID=?;");
+				$updateStmt->bind_param("ss",$toChange['emp-fname'],$update['frm-emp-id']);
+				$output['error-message'] = "Employee's first name updated successfully.";
+			} elseif(!array_key_exists("frm-emp-fname", $toChange) && array_key_exists("frm-emp-lname", $toChange) && !array_key_exists("frm-emp-email", $toChange)) {
+				// lname
+				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET lastName=? WHERE acctID=?;");
+				$updateStmt->bind_param("ss",$toChange['emp-lname'],$update['frm-emp-id']);
+				$output['error-message'] = "Employee's last name updated successfully.";
+			} elseif(!array_key_exists("frm-emp-fname", $toChange) && !array_key_exists("frm-emp-lname", $toChange) && array_key_exists("frm-emp-email", $toChange)) {
+				// email
+				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET email=? WHERE acctID=?;");
+				$updateStmt->bind_param("ss",$toChange['emp-email'],$update['frm-emp-id']);
+				$output['error-message'] = "Employee's email updated successfully.";
+			} elseif(array_key_exists("frm-emp-fname", $toChange) && array_key_exists("frm-emp-lname", $toChange) && !array_key_exists("frm-emp-email", $toChange)) {
+				// fname lname
+				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET firstName=?, lastName=? WHERE acctID=?;");
+				$updateStmt->bind_param("sss",$toChange['emp-fname'],$toChange['emp-lname'],$update['frm-emp-id']);
+				$output['error-message'] = "Employee's first name and last name updated successfully.";
+			} elseif(array_key_exists("frm-emp-fname", $toChange) && !array_key_exists("frm-emp-lname", $toChange) && array_key_exists("frm-emp-email", $toChange)) {
+				// fname email
+				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET firstName=?, email=? WHERE acctID=?;");
+				$updateStmt->bind_param("sss",$toChange['emp-fname'],$toChange['emp-email'],$update['frm-emp-id']);
+				$output['error-message'] = "Employee's first name and email updated successfully.";
+			} elseif(!array_key_exists("frm-emp-fname", $toChange) && array_key_exists("frm-emp-lname", $toChange) && array_key_exists("frm-emp-email", $toChange)) {
+				// lname email
+				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET lastName=?, email=? WHERE acctID=?;");
+				$updateStmt->bind_param("sss",$toChange['emp-lname'],$toChange['emp-email'],$update['frm-emp-id']);
+				$output['error-message'] = "Employee's last name and email updated successfully.";
+			} else {
+				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET firstName=?, lastName=?, email=? WHERE acctID=?;");
+				$updateStmt->bind_param("sss",$toChange['emp-fname'],$toChange['emp-lname'],$toChange['emp-email'],$update['frm-emp-id']);
+				$output['error-message'] = "Employee's first name, last name and email updated successfully.";
+			}
+			
+			if($updateStmt) {
+				$updateStmt->execute();
+				return true;
+			} else {
+				$output['error-message'] = "Database error: " . $myConn->error;
+				return false;
+			}
+			$updateStmt->close();
+		} else {
+			$output['error-message'] = "No changes were made.";
+			return false;
+		}
+	}
 
 	function updateUser($withPass, $update) {
 		global $err;
