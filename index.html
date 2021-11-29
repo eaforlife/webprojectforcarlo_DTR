@@ -40,7 +40,7 @@
 	<div class="row"> <!-- Navigation -->
 		<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow mb-3 rounded">
 			<div class="container-fluid">
-				<a class="navbar-brand" href="./index.php">Attendance System</a>				
+				<a class="navbar-brand" href="./index.html">Attendance System</a>				
 				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navigationMenu" aria-controls="navigationMenu" aria-expanded="false" aria-label="Toggle navigation">
 					<span class="navbar-toggler-icon"></span>
 				</button>
@@ -163,7 +163,7 @@
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
-				<div class="text-capitalize" id="emp-search-output">
+				<div class="text-capitalize text-center" id="emp-search-output">
 					<div class="spinner-border emp-info-loading" role="status">
 						<span class="visually-hidden">Loading...</span>
 					</div>
@@ -225,7 +225,7 @@
 			//console.log(this.responseText);
 			try {
 				var initObj = JSON.parse(this.responseText);
-				console.log(initObj);
+				//console.log(initObj);
 				if(initObj['error'] == "0") {
 					initmenu("index");
 					document.querySelector("#nav-userfullname").innerHTML = initObj['user-name'];
@@ -243,7 +243,7 @@
 					
 				} else {
 					console.log(initObj['message']); // debug
-					window.location.href = "./login.php"; // page should not load if something went wrong here. go back to login page. uncomment after debug
+					window.location.href = "./login.html"; // page should not load if something went wrong here. go back to login page. uncomment after debug
 				}
 			} catch(err) {
 				console.log("init error");
@@ -297,9 +297,9 @@
 		function setidle() {
 			var xhr = new XMLHttpRequest();
 			xhr.onload = function() {
-				console.log("idle");
-				console.log(this.responseText);
-				window.location.href = "./login.php";
+				//console.log("idle");
+				//console.log(this.responseText);
+				window.location.href = "./login.html";
 			}
 			xhr.open("GET", "./scripts/session-logout.php?src=idle", true);
 			xhr.send();
@@ -352,8 +352,8 @@
 		//console.log("Stopped Timer");
 		var xhr = new XMLHttpRequest();
 		xhr.onload = function() {
-			console.log(this.responseText);
-			window.location.href = "./login.php";
+			//console.log(this.responseText);
+			window.location.href = "./login.html";
 		}
 		xhr.open("GET", "./scripts/session-logout.php", true);
 		xhr.send();
@@ -363,8 +363,8 @@
 		//console.log("Stopped Timer");
 		var xhr = new XMLHttpRequest();
 		xhr.onload = function() {
-			console.log("idle");
-			window.location.href = "./login.php";
+			//console.log("idle");
+			window.location.href = "./login.html";
 		}
 		xhr.open("GET", "./scripts/session-logout.php", true);
 		xhr.send();

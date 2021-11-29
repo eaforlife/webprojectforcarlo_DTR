@@ -36,7 +36,7 @@
 			$isloggedout = 0;
 			$currD = date('Y-m-d');
 			$currDT = date('Y-m-d H:i:s');
-			if($checkStatus = $myConn->prepare("SELECT timeMode FROM emp_time WHERE empID=? AND DATE(timeDateTime)=? AND timeMode=1 ORDER BY timeID DESC LIMIT 1;")) {
+			/* if($checkStatus = $myConn->prepare("SELECT timeMode FROM emp_time WHERE empID=? AND DATE(timeDateTime)=? AND (timeMode=1 OR timeMode=2) ORDER BY timeID DESC LIMIT 1;")) {
 				$checkStatus->bind_param("ss", $empID, $currD);
 				$checkStatus->execute();
 				$result = $checkStatus->get_result();
@@ -46,9 +46,9 @@
 					$isloggedout = 0;
 				}
 			}
-			$checkStatus->close();
+			$checkStatus->close(); */
 			
-			if($isloggedout == 0) {
+			//if($isloggedout == 0) {
 				if($logoutQuery  = $myConn->prepare("INSERT INTO emp_time VALUES (NULL,?,1,?);")) {
 					$logoutQuery->bind_param("ss", $empID, $currDT);
 					$logoutQuery->execute();
@@ -59,11 +59,11 @@
 					$output = array("status" => "Database Error: " . $myConn->error);
 				}
 				$logoutQuery->close();
-			} else {
+			/* } else {
 				session_unset();
 				session_destroy();
 				$output = array("status" => "OK - logout not set");
-			}
+			} */
 			
 			echo json_encode($output);
 		}

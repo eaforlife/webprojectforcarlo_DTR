@@ -30,6 +30,7 @@ if(isset($_GET['src'])) {
 	if(!empty(cleanTxt($_GET['src']) && cleanTxt($_GET['src']) == "tbl-edit-emp")) {
 		if(isset($_GET['data']) && !empty(cleanTxt($_GET['data']))) {
 			$data = cleanTxt($_GET['data']);
+			$filedir = "./style/avatar/";
 			$output = [];
 			if($fetchEmp = $myConn->prepare("SELECT * FROM emp_accounts WHERE acctID=? AND status='1';")) {
 				$fetchEmp->bind_param("s",$data);
@@ -41,6 +42,7 @@ if(isset($_GET['src'])) {
 						$output['fname'] = $row['firstName'];
 						$output['lname'] = $row['lastName'];
 						$output['email'] = $row['email'];
+						$output['image'] = $filedir . $row['photo'];
 					}
 					$output['error'] = "0";
 					$output['error-message'] = "OK";
@@ -302,39 +304,40 @@ if(isset($_GET['src'])) {
 		if(isset($_GET['data']) && cleanTxt($_GET['data']) != "") {
 			$usn = cleanTxt($_GET['data']);
 			$curD = date('Y-m-d');
-			
-			if($empQuery = $myConn->prepare("SELECT b.acctID, b.firstName, b.lastName, a.timeMode, a.timeDateTime, (SELECT timeDateTime FROM emp_time WHERE DATE(timeDateTime) = DATE(NOW()) AND empID = ? AND timeMode = 0 ORDER BY timeID ASC LIMIT 1) as lastOnline FROM emp_time a, emp_accounts b WHERE DATE(a.timeDateTime) = DATE(NOW()) AND a.empID = ? AND a.empID = b.acctID ORDER BY a.timeID DESC LIMIT 1;")) {
+			$filedir = "./style/avatar/";
+			if($empQuery = $myConn->prepare("SELECT b.acctID, b.firstName, b.lastName, a.timeMode, a.timeDateTime, b.photo, (SELECT timeDateTime FROM emp_time WHERE DATE(timeDateTime) = DATE(NOW()) AND empID = ? AND timeMode = 0 ORDER BY timeID ASC LIMIT 1) as lastOnline FROM emp_time a, emp_accounts b WHERE DATE(a.timeDateTime) = DATE(NOW()) AND a.empID = ? AND a.empID = b.acctID ORDER BY a.timeID DESC LIMIT 1;")) {
 				$empQuery->bind_param("ss", $usn, $usn);
 				$empQuery->execute();
 				$empOut = $empQuery->get_result();
 				
 				if($empOut->num_rows > 0) {
 					while($row = $empOut->fetch_assoc()) {
-						echo "<p>Employee ID: <span class='font-monospace'>" . $row['acctID'] . "</span></p>
-					<p>Employee Name: <span class='font-monospace'>" . $row['firstName'] . " " . $row['lastName'] . "</span></p>";
+						echo "<img src='" . $filedir . $row['photo'] . "' class='img-fluid img-thumbnail mb-4' alt='pic-" . $row['acctID'] . "' style='height:200px;'>
+						<p><small>Employee ID:</small> <span class='font-monospace'>" . $row['acctID'] . "</span></p>
+					<p><small>Employee Name:</small> <span class='font-monospace'>" . $row['firstName'] . " " . $row['lastName'] . "</span></p>";
 						if($row['timeMode'] == "0") {
 							$startDate = new DateTime($row['lastOnline']);
 							$currentDate = new DateTime();
 							$diff = date_diff($startDate, $currentDate);
-							echo "<p>Employee Session: <span class='font-monospace text-success fw-bolder fs-4'>Online</span></p>";
-							echo "<p>Online at: <span class='font-monospace'>" . date_format($startDate, "g:i:s a") . "</span></p>";
-							echo "<p>Total Session: <span class='font-monospace'>" . $diff->format('%H:%I:%S') . "</span></p>";
+							echo "<p><small>Employee Session:</small> <span class='font-monospace text-success fw-bolder fs-4'>Online</span></p>";
+							echo "<p><small>Online at:</small> <span class='font-monospace'>" . date_format($startDate, "g:i:s a") . "</span></p>";
+							echo "<p><small>Total Session:</small> <span class='font-monospace'>" . $diff->format('%H:%I:%S') . "</span></p>";
 						}
 						if($row['timeMode'] == "1") {
 							$startDate = new DateTime($row['lastOnline']);
 							$endDate = new DateTime($row['timeDateTime']);
 							$diff = date_diff($startDate, $endDate);
-							echo "<p>Employee Session: <span class='font-monospace text-secondary fw-bolder fs-4'>Offline</span></p>";
-							echo "<p>Online at: <span class='font-monospace'>" . date_format($startDate, "g:i:s a") . "</span></p>";
-							echo "<p>Total Session: <span class='font-monospace'>" . $diff->format('%H:%I:%S') . "</span></p>";
+							echo "<p><small>Employee Session:</small> <span class='font-monospace text-secondary fw-bolder fs-4'>Offline</span></p>";
+							echo "<p><small>Online at:</small> <span class='font-monospace'>" . date_format($startDate, "g:i:s a") . "</span></p>";
+							echo "<p><small>Total Session:</small> <span class='font-monospace'>" . $diff->format('%H:%I:%S') . "</span></p>";
 						}
 						if($row['timeMode'] == "2") {
 							$startDate = new DateTime($row['lastOnline']);
 							$endDate = new DateTime($row['timeDateTime']);
 							$diff = date_diff($startDate, $endDate);
-							echo "<p>Employee Session: <span class='font-monospace text-warning fw-bolder fs-4'>Idle</span></p>";
-							echo "<p class='text-warning'>Idle for: <span class='font-monospace'>" . $diff->format('%H:%I:%S') . "</span></p>";
-							echo "<p>Online at: <span class='font-monospace'>" . date_format($startDate, "g:i:s a") . "</span></p>";
+							echo "<p><small>Employee Session:</small> <span class='font-monospace text-warning fw-bolder fs-4'>Idle</span></p>";
+							echo "<p><small>Idle for:</small> <span class='font-monospace text-warning'>" . $diff->format('%H:%I:%S') . "</span></p>";
+							echo "<p><small>Online at:</small> <span class='font-monospace'>" . date_format($startDate, "g:i:s a") . "</span></p>";
 						}
 					}
 				} else {

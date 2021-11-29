@@ -40,14 +40,14 @@
 	<div class="row"> <!-- Navigation -->
 		<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow mb-3 rounded">
 			<div class="container-fluid">
-				<a class="navbar-brand" href="./index.php">Attendance System</a>				
+				<a class="navbar-brand" href="./index.html">Attendance System</a>				
 				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navigationMenu" aria-controls="navigationMenu" aria-expanded="false" aria-label="Toggle navigation">
 					<span class="navbar-toggler-icon"></span>
 				</button>
 				
 				<div class="collapse navbar-collapse" id="navigationMenu">
 					<div class="navbar-nav me-auto ">
-						<a class="nav-link" aria-current="page" href="./index.php">Home</a>
+						<a class="nav-link" aria-current="page" href="./index.html">Home</a>
 						<a class="nav-link active" aria-current="page" href="#">Settings</a>
 						<a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#warning-timeout">Logout <span class="text-capitalize" id="nav-userfullname"></span></a>
 					</div>
@@ -163,7 +163,15 @@
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
-				Are you sure you want to delete employee with ID <span id="delete-emp-id"></span>?
+				<div id="frm-del-output">Are you sure you want to delete employee with ID <span id="delete-emp-id"></span>?</div>
+				<div class="d-flex justify-content-center d-none" id="del-form-loading">
+					<div class="spinner-border" role="status">
+						<span class="visually-hidden">Loading...</span>
+					</div>
+				</div>
+				<form id="frm-del-emp" method="post">
+					<input type="hidden" id="frm-emp-id" name="frm-emp-id">
+				</form>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -190,6 +198,11 @@
 								</div>
 							</div>
 							<form id="frm-edit-emp" method="post" novalidate>
+								<div class="row mb-2">
+									<div class="col">
+										<img id="frm-edit-img" class="img-fluid img-thumbnail" style="max-height:200px;padding:0;margin:0;">
+									</div>
+								</div>
 								<input type="hidden" name="frm-emp-id" id="frm-emp-id">
 								<div class="row mb-2">
 									<label for="frm-emp-fname" class="form-label">First Name: </label>
@@ -238,32 +251,43 @@
 				<div class="row">
 					<div class="d-flex align-content-center justify-content-center">
 						<div class="col-md-10">
+							<div id="frm-add-output"></div>
+							<div class="d-flex justify-content-center d-none" id="add-form-loading">
+								<div class="spinner-border" role="status">
+									<span class="visually-hidden">Loading...</span>
+								</div>
+							</div>
 							<form id="frm-add-emp" method="post" novalidate>
-							<div class="row mb-2">
-								<label for="frm-emp-fname" class="form-label">First Name: </label>
-								<input type="text" class="form-control" name="frm-emp-fname" id="frm-emp-fname" placeholder="First Name" required>
-								<div class="invalid-feedback">Invalid First Name!</div>
-							</div>
-							<div class="row mb-2">
-								<label for="frm-emp-lname" class="form-label">Last Name: </label>
-								<input type="text" class="form-control" name="frm-emp-lname" id="frm-emp-lname" placeholder="Last Name" required>
-								<div class="invalid-feedback">Invalid Last Name!</div>
-							</div>
-							<div class="row mb-2">
-								<label for="frm-emp-email" class="form-label">E-Mail: </label>
-								<input type="email" class="form-control" name="frm-emp-email" id="frm-emp-email" placeholder="Email" required>
-								<div class="invalid-feedback">Invalid E-Mail!</div>
-							</div>
-							<div class="row mb-2">
-								<label for="frm-emp-pic" class="form-label">Profile Pic: </label>
-								<input type="file" class="form-control" name="frm-emp-pic" id="frm-emp-pic">
-								<div class="invalid-feedback">Invalid Picture Format!</div>
-							</div>
-							<div class="row my-4 align-right">
-								<div class="col-auto"><button type="reset" class="btn btn-info">Reset</button></div>
-								<div class="col-auto"><button type="submit" class="btn btn-success">Submit</button></div>
-							</div>
-						</form>
+								<div class="row mb-2">
+									<label for="frm-emp-fname" class="form-label">First Name: </label>
+									<input type="text" class="form-control" name="frm-emp-fname" id="frm-emp-fname" placeholder="First Name" required>
+									<div class="invalid-feedback">Invalid First Name!</div>
+								</div>
+								<div class="row mb-2">
+									<label for="frm-emp-lname" class="form-label">Last Name: </label>
+									<input type="text" class="form-control" name="frm-emp-lname" id="frm-emp-lname" placeholder="Last Name" required>
+									<div class="invalid-feedback">Invalid Last Name!</div>
+								</div>
+								<div class="row mb-2">
+									<label for="frm-emp-email" class="form-label">E-Mail: </label>
+									<input type="email" class="form-control" name="frm-emp-email" id="frm-emp-email" placeholder="Email" required>
+									<div class="invalid-feedback">Invalid E-Mail!</div>
+								</div>
+								<div class="row mb-2">
+									<label for="frm-emp-pic" class="form-label">Profile Pic: </label>
+									<input type="file" class="form-control" name="frm-emp-pic" id="frm-emp-pic" aria-describedby="frm-emp-pic-help" required>
+									<div id="frm-emp-pic-help" class="form-text"><i class="bi bi-info-circle"></i> Must be no more than 5MB. Acceptable image formats: JPG, JPEG, PNG and GIF!</div>
+									<div class="invalid-feedback">Invalid Picture Format!</div>
+								</div>
+								<div class="row my-4 form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" name="frm-emp-admin" id="frm-emp-admin" value="admin">
+									<label class="form-check-label" for="frm-emp-admin">Admin privileges?</label>
+								</div>
+								<div class="row my-4 align-right">
+									<div class="col-auto"><button type="reset" class="btn btn-info">Reset</button></div>
+									<div class="col-auto"><button type="submit" class="btn btn-success">Submit</button></div>
+								</div>
+							</form>
 						</div>
 					</div>
 				</div>
@@ -304,7 +328,7 @@
 	// Initialize Page
 	init();
 	window.onload = function() {
-	  //inactivityTime(); // comment to disable auto logout when idle feature
+	  inactivityTime(); // comment to disable auto logout when idle feature
 	  
 	  // event listener for dynamic dom
 		document.addEventListener("click", function(e) {
@@ -314,6 +338,7 @@
 					var delID = e.target.getAttribute("data-employee");
 					//console.log(delID);
 					document.querySelector("#delete-emp-id").innerHTML = delID;
+					document.querySelector("#frm-del-emp #frm-emp-id").value = delID;
 					delModal.toggle();
 				}
 				//console.log("clicked");
@@ -353,14 +378,16 @@
 					document.querySelector("#nav-userfullname").innerHTML = initObj['user-name'];
 					if(initObj['user-admin'] == "true") {
 						document.querySelector("#user-status-priv").classList.remove("d-none");
+					} else {
+						window.location.href = "./index.html";
 					}
 					
 					fillEmployeeList();
 					fillTable();
 					refreshTable = setInterval(fillTable, 10000);
 				} else {
-					console.log(initObj['message']); // debug
-					//window.location.href = "./login.php"; // page should not load if something went wrong here. go back to login page. uncomment after debug
+					//console.log(initObj['message']); // debug
+					window.location.href = "./login.html"; // page should not load if something went wrong here. go back to login page. uncomment after debug
 				}
 			} catch(err) {
 				console.log("init error");
@@ -401,6 +428,7 @@
 				document.querySelector("#frm-edit-emp #frm-emp-fname").value = editparam['fname'];
 				document.querySelector("#frm-edit-emp #frm-emp-lname").value = editparam['lname'];
 				document.querySelector("#frm-edit-emp #frm-emp-email").value = editparam['email'];
+				document.querySelector("#frm-edit-emp #frm-edit-img").src = editparam['image'];
 			} else {
 				document.querySelector("#frm-edit-error").innerHTML = editparam['error-message'];
 				document.querySelector("#edit-form-loading").classList.add("d-none");
@@ -441,6 +469,49 @@
 		//console.log("./scripts/content.php?src=tbl-admintools&sort="+sort+"&sortby="+sortby+"&data="+data);
 	}
 	
+	function resetAddEmployee() {
+		document.querySelector("#frm-add-output").innerHTML = "";
+		document.querySelector("#frm-add-emp").reset();
+		document.querySelector("#frm-add-emp").classList.remove("d-none");
+	}
+	
+	function addEmployee() {
+		var xhr = new XMLHttpRequest();
+		var frmadd = document.querySelector("#frm-add-emp");
+		var data = new FormData(frmadd);
+		
+		document.querySelector("#frm-add-emp").classList.add("d-none");
+		document.querySelector("#add-form-loading").classList.remove("d-none");
+		document.querySelector("#frm-add-output").innerHTML = "";
+		
+		xhr.onload = function() {
+			//console.log(this.responseText);
+			var addOb = JSON.parse(this.responseText);
+			document.querySelector("#add-form-loading").classList.add("d-none");
+			if(addOb['error'] == "0") {
+				document.querySelector("#frm-add-output").innerHTML = addOb['error-message'];
+			} else {
+				if(addOb['error-message'] == "validation") {
+					document.querySelector("#frm-add-emp").classList.remove("d-none");
+					delete addOb['error'];
+					delete addOb['error-message'];
+					for(var i of document.querySelectorAll("#frm-add-emp input")) {
+						i.classList.add("is-valid");
+						Object.keys(addOb).forEach(function(k) {
+							document.querySelector("#frm-add-emp #" + k).classList.remove("is-valid");
+							document.querySelector("#frm-add-emp #" + k).classList.add("is-invalid");
+							document.querySelector("#frm-add-emp #" + k).value = "";
+						});
+					}
+				} else {
+					document.querySelector("#frm-add-output").innerHTML = addOb['error-message'];
+				}
+			}
+		}
+		xhr.open("POST", "./scripts/form-validation.php?src=add", true);
+		xhr.send(data);
+	}
+	
 	function editEmployee() {
 		var xhr = new XMLHttpRequest();
 		var frmedit = document.querySelector("#frm-edit-emp");
@@ -451,8 +522,8 @@
 		document.querySelector("#frm-edit-emp").classList.add("d-none");
 		
 		xhr.onload = function() {
-			console.log(this.responseText);
 			var editOb = JSON.parse(this.responseText);
+			//console.log(editOb);
 			document.querySelector("#edit-form-loading").classList.add("d-none");
 			if(editOb['error'] == "0") {
 				document.querySelector("#frm-edit-error").classList.remove("d-none");
@@ -461,9 +532,10 @@
 				if(editOb['error-message'] == "validation") {
 					delete editOb['error'];
 					delete editOb['error-message'];
+					document.querySelector("#frm-edit-emp").classList.remove("d-none");
 					for(var i of document.querySelectorAll("#frm-edit-emp input")) {
 						i.classList.add("is-valid");
-						Object.keys(formvalidation).forEach(function(k) {
+						Object.keys(editOb).forEach(function(k) {
 							document.querySelector("#frm-edit-emp #" + k).classList.remove("is-valid");
 							document.querySelector("#frm-edit-emp #" + k).classList.add("is-invalid");
 							document.querySelector("#frm-edit-emp #" + k).value = "";
@@ -488,7 +560,7 @@
 		document.querySelector("#frm-edit-error").classList.add("d-none");
 		document.querySelector("#frm-edit-emp").classList.add("d-none");
 		
-		console.log(data);
+		//console.log(data);
 		xhr.onload = function() {
 			var passOb = JSON.parse(this.responseText);
 			if(passOb['error'] == "0") {
@@ -506,6 +578,29 @@
 		xhr.send(data);
 	}
 	
+	function deleteEmployee() {
+		var xhr = new XMLHttpRequest();
+		var frmdel = document.querySelector("#frm-del-emp");
+		var data = new FormData(frmdel);
+		
+		document.querySelector("#del-form-loading").classList.remove("d-none");
+		document.querySelector("#frm-del-output").innerHTML = "";
+		
+		xhr.onload = function() {
+			//console.log(this.responseText);
+			var delOb = JSON.parse(this.responseText);
+			document.querySelector("#del-form-loading").classList.add("d-none");
+			document.querySelector("#btn-del-emp").classList.add("d-none");
+			if(delOb['error'] == "0") {
+				document.querySelector("#frm-del-output").innerHTML = delOb['error-message'];
+			} else {
+				document.querySelector("#frm-del-output").innerHTML = delOb['error-message'];
+			}
+		}
+		xhr.open("POST", "./scripts/form-validation.php?src=delete", true);
+		xhr.send(data);
+	}
+	
 	var inactivityTime = function () {
 		var time;
 		window.onload = resetTimer;
@@ -518,7 +613,7 @@
 			xhr.onload = function() {
 				//console.log("idle");
 				//console.log(this.responseText);
-				window.location.href = "./login.php";
+				window.location.href = "./login.html";
 			}
 			xhr.open("GET", "./scripts/session-logout.php?src=idle", true);
 			xhr.send();
@@ -531,13 +626,22 @@
 		}
 	};
 	
-	
+	document.querySelector("#btn-del-emp").addEventListener("click", function() {
+		deleteEmployee();
+	});
+	document.querySelector("#frm-del-emp").addEventListener("submit", function(e) {
+		e.preventDefault();
+	});
+	document.querySelector("#frm-add-emp").addEventListener("submit", function(e) {
+		addEmployee();
+		e.preventDefault();
+	});
 	document.querySelector("#frm-edit-btn").addEventListener("click", function() {
-		console.log("Edit employee clicked");
+		//console.log("Edit employee clicked");
 		editEmployee();
 	});
 	document.querySelector("#frm-reset-pass").addEventListener("click", function() {
-		console.log("reset pass clicked");
+		//console.log("reset pass clicked");
 		resetPass();
 	});
 	document.querySelector("#emp-sort").addEventListener("change", function() {
@@ -555,6 +659,12 @@
 		fillTable();
 		refreshTable = setInterval(fillTable, 10000);
 	});
+	document.querySelector("#warning-delete").addEventListener("hidden.bs.modal", function() {
+		document.querySelector("#btn-del-emp").classList.remove("d-none");
+		document.querySelector("#frm-del-output").innerHTML = "Are you sure you want to delete employee with ID <span id='delete-emp-id'></span>?";
+		fillEmployeeList();
+		fillTable();
+	});
 	document.querySelector("#edit-employee-form").addEventListener("hidden.bs.modal", function() {
 		fillEmployeeList();
 		fillTable();
@@ -563,6 +673,7 @@
 		clearTableTimer();
 	});
 	document.querySelector("#add-employee-form").addEventListener("hidden.bs.modal", function() {
+		resetAddEmployee();
 		fillEmployeeList();
 		fillTable();
 		refreshTable = setInterval(fillTable, 10000);
@@ -573,7 +684,7 @@
 		var xhr = new XMLHttpRequest();
 		xhr.onload = function() {
 			//console.log(this.responseText);
-			window.location.href = "./login.php";
+			window.location.href = "./login.html";
 		}
 		xhr.open("GET", "./scripts/session-logout.php", true);
 		xhr.send();

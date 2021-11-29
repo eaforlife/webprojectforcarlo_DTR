@@ -101,14 +101,14 @@
 		frmData = JSON.stringify(Object.fromEntries(frmData));
 		
 		xhr.onload = function() {
-			console.log(this.responseText);
+			//console.log(this.responseText);
 			jsonObj = JSON.parse(this.responseText);
 			if(jsonObj['error'] != "1") {
 				loginForm.classList.add("d-none");
 				var divSuccess = document.querySelector(".login-success");
 				divSuccess.classList.remove("d-none");
 				setTimeout(function() {
-					window.location.href = "./index.php";
+					window.location.href = "./index.html";
 				}, 5000);
 			} else {
 				//loginForm.classList.add("was-validated");
@@ -164,7 +164,7 @@
 		xhr.onload = function() {
 			try {
 				var jObj = JSON.parse(this.responseText);
-				console.log(jObj);
+				//console.log(jObj);
 			} catch(err) {
 				// using try catch since json object return is null
 				console.log(err);

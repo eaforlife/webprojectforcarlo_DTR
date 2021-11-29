@@ -40,14 +40,14 @@
 	<div class="row"> <!-- Navigation -->
 		<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow mb-3 rounded">
 			<div class="container-fluid">
-				<a class="navbar-brand" href="./index.php">Attendance System</a>				
+				<a class="navbar-brand" href="./index.html">Attendance System</a>				
 				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navigationMenu" aria-controls="navigationMenu" aria-expanded="false" aria-label="Toggle navigation">
 					<span class="navbar-toggler-icon"></span>
 				</button>
 				
 				<div class="collapse navbar-collapse" id="navigationMenu">
 					<div class="navbar-nav me-auto ">
-						<a class="nav-link" aria-current="page" href="./index.php">Home</a>
+						<a class="nav-link" aria-current="page" href="./index.html">Home</a>
 						<a class="nav-link active" aria-current="page" href="#">Settings</a>
 						<a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#warning-timeout">Logout <span class="text-capitalize" id="nav-userfullname"></span></a>
 					</div>
@@ -75,6 +75,7 @@
 							</div>
 							
 							<form class="d-none" id="form-edit" novalidate>
+								<p class="text-warning d-none" id="form-edit-response"></p>
 								<div class="row g-2 align-items-center my-2">
 									<div class="col-sm-3">
 										<label for="emp-id" class="form-label">Employee ID</label>
@@ -260,7 +261,7 @@
 			//console.log(this.responseText);
 			try {
 				var initObj = JSON.parse(this.responseText);
-				console.log(initObj);
+				//console.log(initObj);
 				if(initObj['error'] == "0") {
 					formDefaults = initObj;
 					delete formDefaults.error;
@@ -272,8 +273,8 @@
 					}
 					
 				} else {
-					console.log(initObj['message']); // debug
-					window.location.href = "./login.php"; // page should not load if something went wrong here. go back to login page. uncomment after debug
+					//console.log(initObj['message']); // debug
+					window.location.href = "./login.html"; // page should not load if something went wrong here. go back to login page. uncomment after debug
 				}
 			} catch(err) {
 				console.log("init error");
@@ -303,15 +304,20 @@
 	}
 	
 	function submitForm() {
-		console.log("I am submitted");
+		//console.log("I am submitted");
 		var xhr = new XMLHttpRequest();
 		var editForm = document.querySelector("#form-edit");
 		var data = new FormData(editForm);
+		document.querySelector("#form-edit-response").classList.add("d-none");
+		document.querySelector("form").classList.add("d-none");
+		document.querySelector("#edit-loading").classList.remove("d-none");
 		xhr.onload = function() {
+			//console.log(this.responseText);
+			document.querySelector("#edit-loading").classList.add("d-none");
 			try {
 				var formvalidation = JSON.parse(this.responseText);
-				console.log(this.responseText);
 				if(formvalidation['error'] == "1") {
+					document.querySelector("form").classList.remove("d-none");
 					if(formvalidation['msg'] == "validation") {
 						delete formvalidation['error'];
 						delete formvalidation['msg'];
@@ -323,24 +329,28 @@
 								document.querySelector("#form-edit #" + k).value = "";
 							});
 						}
+					} else if(formvalidation['msg'] == "none") {
+						document.querySelector("#page-unavailable #emp-info-title").innerHTML = "<i class='bi bi-tools'></i> Edit Profile";
+						document.querySelector("#page-unavailable .modal-body").innerHTML = "No changes were made";
+						setFormDefault();
+						errModal.toggle();
 					} else {
 						document.querySelector("#page-unavailable #emp-info-title").innerHTML = "<i class='bi bi-tools'></i> Problem(s) found!";
 						document.querySelector("#page-unavailable .modal-body").innerHTML = formvalidation['msg'];
 						setFormDefault();
 						errModal.toggle();
 					}
-				} else {
-					document.querySelector("form").classList.add("d-none");
+				}  else {
 					document.querySelector("#page-available #emp-info-title").innerHTML = "Profile Updated Successfully!";
 					document.querySelector("#page-available .modal-body").innerHTML = formvalidation['msg'] + " You will need to login again to apply changes.";
 					setFormDefault();
 					okModal.toggle();
 					//formLogout();
 				}
-			
 			} catch(err) {
-				console.log("error?");
-				console.log(err);
+				//console.log("error?");
+				document.querySelector("#form-edit-response").classList.remove("d-none");
+				document.querySelector("#form-edit-response").classList.innerHTML = "An unexpected error has occurred. Please try again later. Error: " + err;
 			}
 		}
 		xhr.open("POST","./scripts/form-validation.php?src=edit",true);
@@ -351,8 +361,8 @@
 	function formLogout() {
 		var xhr = new XMLHttpRequest();
 		xhr.onload = function() {
-			console.log(this.responseText);
-			window.location.href = "./login.php";
+			//console.log(this.responseText);
+			window.location.href = "./login.html";
 		}
 		xhr.open("GET", "./scripts/session-logout.php", true);
 		xhr.send();
@@ -373,9 +383,9 @@
 		function setidle() {
 			var xhr = new XMLHttpRequest();
 			xhr.onload = function() {
-				console.log("idle");
-				console.log(this.responseText);
-				window.location.href = "./login.php";
+				//console.log("idle");
+				//console.log(this.responseText);
+				window.location.href = "./login.html";
 			}
 			xhr.open("GET", "./scripts/session-logout.php?src=idle", true);
 			xhr.send();
@@ -403,7 +413,7 @@
 	});
 	
 	document.querySelector("#form-edit").addEventListener("reset", function(e) {
-		console.log("Reset Clicked.");
+		//console.log("Reset Clicked.");
 		setFormDefault();
 		e.preventDefault();
 	});
@@ -412,8 +422,8 @@
 		//console.log("Stopped Timer");
 		var xhr = new XMLHttpRequest();
 		xhr.onload = function() {
-			console.log(this.responseText);
-			window.location.href = "./login.php";
+			//console.log(this.responseText);
+			window.location.href = "./login.html";
 		}
 		xhr.open("GET", "./scripts/session-logout.php", true);
 		xhr.send();
