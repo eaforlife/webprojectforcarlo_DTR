@@ -58,6 +58,12 @@ if(isset($obj['login-username']) && isset($obj['login-password'])) {
 		if(empty($empID)) {
 			$json_out = array("error" => "1", "message" => "Invalid username or password. Please try again.");
 		} else {
+			if($logoutSession = $myConn->prepare("INSERT INTO emp_time VALUES (NULL,?,1,?);")) {
+				$logoutSession->bind_param("ss", $empID, $curDt);
+				$logoutSession->execute();
+			}
+			$logoutSession->close();
+			sleep(2);
 			if($loginUser = $myConn->prepare("INSERT INTO emp_time VALUES (NULL,?,0,?);")) {
 				$loginUser->bind_param("ss", $empID, $curDt);
 				$loginUser->execute();
@@ -68,7 +74,6 @@ if(isset($obj['login-username']) && isset($obj['login-password'])) {
 			}
 			$loginUser->close();
 		}
-		
 		echo json_encode($json_out);
 	} else {
 		// Username and password from form is empty
@@ -90,7 +95,7 @@ function addtoSession($usnID, $usnName, $usnAdmin) {
 		unset($_SESSION['error']);
 	if($usnAdmin=="1")
 		$_SESSION['admin'] = "1";
-	$_SESSION['expire'] = time() + 3600; // add session expiry of 1 hour.
+	//$_SESSION['expire'] = time() + 3600; // add session expiry of 1 hour.
 }
 
 function cleanTxt($x) {

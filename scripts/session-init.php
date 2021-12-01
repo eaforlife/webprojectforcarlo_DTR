@@ -6,6 +6,40 @@ session_start();
 
 if(isset($_POST['src'])) {
 	$src = cleanTxt($_POST['src']);
+
+	if($src == "session") {
+		// check if session change happen
+		$userid = $_SESSION['id'];
+		if($checkUser = $myConn->prepare("SELECT timeMode FROM emp_time WHERE empID=? AND DATE(NOW())=DATE(timeDateTime) ORDER BY timeID DESC LIMIT 1;")) {
+			$checkUser->bind_param("s",$userid);
+			if($checkUser->execute()) {
+				$isUserLogged = $checkUser->get_result();
+				if($isUserLogged->num_rows > 0) {
+					while($row = $isUserLogged->fetch_assoc()) {
+						if($row['timeMode'] == "1" || $row['timeMode'] == "2") {
+							$output['session'] = "0";
+							$output['session-msg'] = "You have been logged out from a different device.";
+						} else {
+							$output['session'] = "1";
+							$output['session-msg'] = "Session still active.";
+						}
+					}
+				} else {
+					$output['session'] = "0";
+					$output['session-msg'] = "Session has been reset. Login again to establish a new one.";
+				}
+				$isUserLogged->free_result();
+			} else {
+				$output['session'] = "1";
+				$output['session-msg'] = "Error while checking session. Error: " . $checkUser->error;
+			}
+		} else {
+			$output['session'] = "1";
+			$output['session-msg'] = "Error while checking database. Error: " . $myConn->error;
+		}
+		$checkUser->close();
+		echo json_encode($output);
+	}
 	
 	if($src == "index") {
 		// json for index page

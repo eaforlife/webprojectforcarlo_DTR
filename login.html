@@ -31,6 +31,11 @@
 								<span class="visually-hidden">Loading...</span>
 							</div>
 						</div>
+						<div class="my-5 login-loading d-none">
+							<div class="spinner-grow my-2" role="status">
+								<span class="visually-hidden">Loading...</span>
+							</div>
+						</div>
 						<form class="my-5 g-2" method="POST" novalidate>
 							<div class="form-group input-group mb-2">
 								<label class="col-lg-2 col-form-label" for="login-username">Username: </label>
@@ -99,12 +104,13 @@
 		var xhr = new XMLHttpRequest();
 		var frmData = new FormData(loginForm);
 		frmData = JSON.stringify(Object.fromEntries(frmData));
-		
+		document.querySelector(".login-loading").classList.remove("d-none");
+		loginForm.classList.add("d-none");
 		xhr.onload = function() {
 			//console.log(this.responseText);
 			jsonObj = JSON.parse(this.responseText);
+			document.querySelector(".login-loading").classList.add("d-none");
 			if(jsonObj['error'] != "1") {
-				loginForm.classList.add("d-none");
 				var divSuccess = document.querySelector(".login-success");
 				divSuccess.classList.remove("d-none");
 				setTimeout(function() {
@@ -112,6 +118,7 @@
 				}, 5000);
 			} else {
 				//loginForm.classList.add("was-validated");
+				loginForm.classList.remove("d-none");
 				var loginInput = document.querySelectorAll(".login-validate form input");
 				for(var x=0; x < loginInput.length; x++)
 					loginInput[x].classList.add("is-invalid");
@@ -130,6 +137,7 @@
 	function showError() {
 		var xhr = new XMLHttpRequest();
 		xhr.onload = function() {
+			//console.log(this.responseText);
 			try {
 				var errO = JSON.parse(this.responseText);
 				if(errO['error'] == "1") {
@@ -163,6 +171,7 @@
 		var xhr = new XMLHttpRequest();
 		xhr.onload = function() {
 			try {
+				//console.log(this.responseText);
 				var jObj = JSON.parse(this.responseText);
 				//console.log(jObj);
 			} catch(err) {

@@ -148,7 +148,7 @@
 				By selecting continue, any session timer that's active on your account will be terminated. Do you wish to continue?
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 				<button type="button" class="btn btn-danger" id="btn-timeout"><i class="bi bi-exclamation-circle"></i> Continue</button>
 			</div>
 		</div>
@@ -174,7 +174,7 @@
 				</form>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 				<button type="button" class="btn btn-danger" id="btn-del-emp"><i class="bi bi-exclamation-circle"></i> Delete</button>
 			</div>
 		</div>
@@ -221,8 +221,13 @@
 								</div>
 								<div class="row mb-2">
 									<label for="frm-emp-pic" class="form-label">Profile Pic: </label>
-									<input type="file" class="form-control" name="frm-emp-pic" id="frm-emp-pic">
+									<input type="file" class="form-control" name="frm-emp-pic" id="frm-emp-pic" aria-describedby="frm-emp-pic-help">
+									<div id="frm-emp-pic-help" class="form-text"><i class="bi bi-info-circle"></i> Must be no more than 5MB. Acceptable image formats: JPG, JPEG, PNG and GIF!</div>
 									<div class="invalid-feedback">Invalid Picture Format!</div>
+								</div>
+								<div class="row my-4 form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" name="frm-emp-admin" id="frm-emp-admin" value="admin">
+									<label class="form-check-label" for="frm-emp-admin">Admin privileges?</label>
 								</div>
 								<div class="row my-4 align-right">
 									<div class="col-auto"><button type="button" class="btn btn-info" id="frm-reset-pass">Reset Password</button></div>
@@ -234,7 +239,7 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 			</div>
 		</div>
 	</div>
@@ -293,7 +298,7 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 			</div>
 		</div>
 	</div>
@@ -318,6 +323,7 @@
 
 <!-- Javascript end of page for faster load times -->
 <script src="./scripts/bootstrap.bundle.min.js"></script>
+<script src="./scripts/dependencies.js"></script>
 <script>
 	//console.log("Hello World.");
 	var formDefaults = new Object();
@@ -329,6 +335,7 @@
 	init();
 	window.onload = function() {
 	  inactivityTime(); // comment to disable auto logout when idle feature
+	  var sessionTime = setInterval(getSession, 2000);
 	  
 	  // event listener for dynamic dom
 		document.addEventListener("click", function(e) {
@@ -352,20 +359,9 @@
 				}
 				//console.log("clicked");
 			}
-			
-			
 		});
 	}
 	
-	// Initialize bootstrap utilities
-	var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
-	var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-	  return new bootstrap.Popover(popoverTriggerEl)
-	})
-	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-		return new bootstrap.Tooltip(tooltipTriggerEl)
-	})
 	// main functions
 	function init() {
 		const xhr = new XMLHttpRequest();
@@ -419,6 +415,7 @@
 			
 		var xhr = new XMLHttpRequest();
 		xhr.onload = function() {
+			//console.log(this.responseText);
 			var editparam = JSON.parse(this.responseText);
 			//console.log(editparam);
 			if(editparam['error'] == "0") {
@@ -428,7 +425,11 @@
 				document.querySelector("#frm-edit-emp #frm-emp-fname").value = editparam['fname'];
 				document.querySelector("#frm-edit-emp #frm-emp-lname").value = editparam['lname'];
 				document.querySelector("#frm-edit-emp #frm-emp-email").value = editparam['email'];
-				document.querySelector("#frm-edit-emp #frm-edit-img").src = editparam['image'];
+				if(editparam['admin'] == "1") {
+					document.querySelector("#frm-edit-emp #frm-emp-admin").checked = true;
+				} else {
+					document.querySelector("#frm-edit-emp #frm-emp-admin").checked = false;
+				}
 			} else {
 				document.querySelector("#frm-edit-error").innerHTML = editparam['error-message'];
 				document.querySelector("#edit-form-loading").classList.add("d-none");
@@ -471,8 +472,23 @@
 	
 	function resetAddEmployee() {
 		document.querySelector("#frm-add-output").innerHTML = "";
+		document.querySelector("#add-form-loading").classList.add("d-none");
 		document.querySelector("#frm-add-emp").reset();
 		document.querySelector("#frm-add-emp").classList.remove("d-none");
+	}
+	
+	function resetEditEmployee() {
+		document.querySelector("#frm-edit-error").innerHTML = "";
+		document.querySelector("#edit-form-loading").classList.add("d-none");
+		document.querySelector("#frm-edit-emp").reset();
+		document.querySelector("#frm-edit-emp").classList.remove("d-none");
+	}
+	
+	function resetDeleteEmployee() {
+		document.querySelector("#btn-del-emp").classList.remove("d-none");
+		document.querySelector("#del-form-loading").classList.add("d-none");
+		document.querySelector("#frm-del-emp").reset();
+		document.querySelector("#frm-del-output").innerHTML = "Are you sure you want to delete employee with ID <span id='delete-emp-id'></span>?";
 	}
 	
 	function addEmployee() {
@@ -601,31 +617,6 @@
 		xhr.send(data);
 	}
 	
-	var inactivityTime = function () {
-		var time;
-		window.onload = resetTimer;
-		// DOM Events
-		document.onmousemove = resetTimer;
-		document.onkeydown = resetTimer;
-
-		function setidle() {
-			var xhr = new XMLHttpRequest();
-			xhr.onload = function() {
-				//console.log("idle");
-				//console.log(this.responseText);
-				window.location.href = "./login.html";
-			}
-			xhr.open("GET", "./scripts/session-logout.php?src=idle", true);
-			xhr.send();
-		}
-
-		function resetTimer() {
-			clearTimeout(time);
-			time = setTimeout(setidle, 300000) // 5mins or 300,000ms idle
-			// 1000 milliseconds = 1 second
-		}
-	};
-	
 	document.querySelector("#btn-del-emp").addEventListener("click", function() {
 		deleteEmployee();
 	});
@@ -660,17 +651,14 @@
 		refreshTable = setInterval(fillTable, 10000);
 	});
 	document.querySelector("#warning-delete").addEventListener("hidden.bs.modal", function() {
-		document.querySelector("#btn-del-emp").classList.remove("d-none");
-		document.querySelector("#frm-del-output").innerHTML = "Are you sure you want to delete employee with ID <span id='delete-emp-id'></span>?";
+		resetDeleteEmployee();
 		fillEmployeeList();
 		fillTable();
 	});
 	document.querySelector("#edit-employee-form").addEventListener("hidden.bs.modal", function() {
+		resetEditEmployee();
 		fillEmployeeList();
 		fillTable();
-	});
-	document.querySelector("#add-employee-form").addEventListener("shown.bs.modal", function() {
-		clearTableTimer();
 	});
 	document.querySelector("#add-employee-form").addEventListener("hidden.bs.modal", function() {
 		resetAddEmployee();
@@ -678,17 +666,8 @@
 		fillTable();
 		refreshTable = setInterval(fillTable, 10000);
 	});
-	
-	document.getElementById("btn-timeout").addEventListener("click", function() {
-		//console.log("Stopped Timer");
-		var xhr = new XMLHttpRequest();
-		xhr.onload = function() {
-			//console.log(this.responseText);
-			window.location.href = "./login.html";
-		}
-		xhr.open("GET", "./scripts/session-logout.php", true);
-		xhr.send();
-		//stopSessionTimer();
+	document.querySelector("#add-employee-form").addEventListener("shown.bs.modal", function() {
+		clearTableTimer();
 	});
 </script>
 </body>

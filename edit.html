@@ -190,7 +190,7 @@
 				By selecting continue, any session timer that's active on your account will be terminated. Do you wish to continue?
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 				<button type="button" class="btn btn-danger" id="btn-timeout"><i class="bi bi-exclamation-circle"></i> Continue</button>
 			</div>
 		</div>
@@ -232,6 +232,7 @@
 
 <!-- Javascript end of page for faster load times -->
 <script src="./scripts/bootstrap.bundle.min.js"></script>
+<script src="./scripts/dependencies.js"></script>
 <script>
 	//console.log("Hello World.");
 	var formDefaults = new Object();
@@ -240,17 +241,9 @@
 	init();
 	window.onload = function() {
 	  inactivityTime(); // comment to disable auto logout when idle feature
+	  var sessionTime = setInterval(getSession, 2000);
 	}
 	
-	// Initialize bootstrap utilities
-	var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
-	var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-	  return new bootstrap.Popover(popoverTriggerEl)
-	});
-	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-		return new bootstrap.Tooltip(tooltipTriggerEl)
-	});
 	var errModal = new bootstrap.Modal(document.querySelector("#page-unavailable"));
 	var okModal = new bootstrap.Modal(document.querySelector("#page-available"));
 	
@@ -354,7 +347,6 @@
 			}
 		}
 		xhr.open("POST","./scripts/form-validation.php?src=edit",true);
-		//xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 		xhr.send(data);
 	}
 	
@@ -372,31 +364,6 @@
 		if(data == null)
 			data = "";
 	}
-	
-	var inactivityTime = function () {
-		var time;
-		window.onload = resetTimer;
-		// DOM Events
-		document.onmousemove = resetTimer;
-		document.onkeydown = resetTimer;
-
-		function setidle() {
-			var xhr = new XMLHttpRequest();
-			xhr.onload = function() {
-				//console.log("idle");
-				//console.log(this.responseText);
-				window.location.href = "./login.html";
-			}
-			xhr.open("GET", "./scripts/session-logout.php?src=idle", true);
-			xhr.send();
-		}
-
-		function resetTimer() {
-			clearTimeout(time);
-			time = setTimeout(setidle, 300000) // 5mins or 300,000ms idle
-			// 1000 milliseconds = 1 second
-		}
-	};
 	
 	document.querySelector("#page-available").addEventListener("hidden.bs.modal", function() {
 		formLogout();
@@ -416,18 +383,6 @@
 		//console.log("Reset Clicked.");
 		setFormDefault();
 		e.preventDefault();
-	});
-	
-	document.getElementById("btn-timeout").addEventListener("click", function() {
-		//console.log("Stopped Timer");
-		var xhr = new XMLHttpRequest();
-		xhr.onload = function() {
-			//console.log(this.responseText);
-			window.location.href = "./login.html";
-		}
-		xhr.open("GET", "./scripts/session-logout.php", true);
-		xhr.send();
-		//stopSessionTimer();
 	});
 </script>
 </body>

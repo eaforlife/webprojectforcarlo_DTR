@@ -6,6 +6,7 @@
 	$err = [];
 	$update = [];
 	$output = [];
+	$filedir = "../style/avatar/";
 	
 	if(isset($_GET['src']) && $_GET['src'] == 'edit') {
 		$fields = ['emp-id','emp-fname','emp-lname','emp-email','emp-old-pass','emp-new-pass','emp-new-pass-confirm'];
@@ -83,7 +84,7 @@
 	
 	if(isset($_GET['src']) && $_GET['src'] == 'add') {
 		$fields = ['frm-emp-fname','frm-emp-lname','frm-emp-email'];
-		$filedir = "../style/avatar/";
+		
 		if(!file_exists($filedir)) {
 			mkdir($filedir, 0777, true);
 		}
@@ -250,10 +251,38 @@
 					}
 				}
 			}
-			
 			if(!empty($update['frm-emp-email']) && !filter_var($update['frm-emp-email'], FILTER_VALIDATE_EMAIL)) {
 				$err['frm-emp-email'] = 'frm-emp-email';
 			}
+			if(isset($_POST['frm-emp-admin'])) {
+				$update['frm-emp-admin'] = "1";
+			} else {
+				$update['frm-emp-admin'] = "0";
+			}
+			/* Start of file validation */
+			$fileTemp = $filedir . basename($_FILES['frm-emp-pic']['name']);
+			$fileExt = strtolower(pathinfo($fileTemp,PATHINFO_EXTENSION));
+			if(is_uploaded_file($_FILES['frm-emp-pic']['tmp_name'])) {
+				if(!getimagesize($_FILES['frm-emp-pic']['tmp_name'])) {
+					$err['frm-emp-pic'] = 'frm-emp-pic';
+				}
+				if($_FILES['frm-emp-pic']['size'] > 5242880) {
+					$err['frm-emp-pic'] = 'frm-emp-pic';
+				}
+				if($fileExt != "jpeg" && $fileExt != "jpg" && $fileExt != "png" && $fileExt != "gif") {
+					$err['frm-emp-pic'] = 'frm-emp-pic';
+				}
+				if(!array_key_exists("frm-emp-pic",$err)) {
+					$dt = date("Ymdgis");
+					$imgname = $dt . $fileTemp;
+					$imgname = md5($imgname);
+					$imgname = substr($imgname, 0, 10);
+					$imgname = $imgname . "." . $fileExt;
+					$update["frm-emp-pic"] = $imgname;
+					$fileDest = $filedir . $imgname;
+				}
+			}
+			/* End of file validation */
 			
 			if(count($err) > 0) {
 				$output = $err;
@@ -261,11 +290,18 @@
 				$output['error-message'] = "validation";
 			} else {
 				if(updateUserAdmin($update)) {
-					$output['error'] = "0";
+					if(array_key_exists("frm-emp-pic",$update)) {
+						if(move_uploaded_file($_FILES['frm-emp-pic']['tmp_name'],$fileDest)) {
+							$output['error'] = "0";
+						} else {
+							$output['error'] = "1";
+							$output['error-message'] = "Updated user successfully but unable to upload image properly. Try again later.";
+						}
+					} else {
+						$output['error'] = "0";
+					}
 				} else {
 					$output['error'] = "1";
-					//$output['error-message'] = "Some error";
-					//$output[] = $update;
 				}
 			}
 			echo json_encode($output);
@@ -285,8 +321,13 @@
 				if($resetPass = $myConn->prepare("UPDATE emp_accounts SET passWord=? WHERE acctID=?;")) {
 					$resetPass->bind_param("ss", $dbpass, $empid);
 					$resetPass->execute();
-					$output['error'] = "0";
-					$output['error-message'] = "Successfully updated password for Employee " . $empid . ". New password: <pre>" . $newpass . "</pre>";
+					if(setUserLog($empid)) {
+						$output['error'] = "0";
+						$output['error-message'] = "Successfully updated password for Employee " . $empid . ". <p><small>New password</small>: <pre>" . $newpass . "</pre></p>";
+					} else {
+						$output['error'] = "0";
+						$output['error-message'] = "Successfully updated password(but can't set logout) for Employee " . $empid . ". <p><small>New password</small>: <pre>" . $newpass . "</pre></p>";
+					}
 				} else {
 					$output['error'] = "1";
 					$output['error-message'] = "Unable to update with error: " . $myConn->error;
@@ -299,13 +340,30 @@
 			echo json_encode($output);
 		}
 	}
+
+	function setUserLog($id) {
+		// if something is changed that requires user to logout, set account to logout
+		global $myConn;
+		$currentDate = date('Y-m-d H:i:s');
+		if($logoutUser = $myConn->prepare("INSERT INTO emp_time VALUES (NULL,?,1,?);")) {
+			$logoutUser->bind_param("ss",$id,$currentDate);
+			if($logoutUser->execute()) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+		$logoutUser->close();
+	}
 	
 	function updateUserAdmin($update) {
 		global $myConn;
 		global $output;
 		
 		$toChange = [];
-		if($checkUser = $myConn->prepare("SELECT firstName, lastName, email FROM emp_accounts WHERE acctID=?;")) {
+		if($checkUser = $myConn->prepare("SELECT firstName, lastName, email, isAdmin FROM emp_accounts WHERE acctID=?;")) {
 			$checkUser->bind_param("s",$update['frm-emp-id']);
 			$checkUser->execute();
 			$resultcheckUser = $checkUser->get_result();
@@ -325,47 +383,75 @@
 			$resultcheckUser->free_result();
 		} 
 		$checkUser->close();
+		if(array_key_exists("frm-emp-pic", $update)) {
+			$toChange["frm-emp-pic"] = $update["frm-emp-pic"];
+		}
+		if(array_key_exists("frm-emp-admin", $update)) {
+			$toChange["frm-emp-admin"] = $update["frm-emp-admin"];
+		}
 		
 		if(count($toChange) > 0) {
-			if(array_key_exists("frm-emp-fname", $toChange) && !array_key_exists("frm-emp-lname", $toChange) && !array_key_exists("frm-emp-email", $toChange)) {
+			if(array_key_exists("frm-emp-fname", $toChange) && !array_key_exists("frm-emp-lname", $toChange) && !array_key_exists("frm-emp-email", $toChange) && !array_key_exists("frm-emp-admin", $toChange) && !array_key_exists("frm-emp-pic", $toChange)) {
 				// fname
 				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET firstName=? WHERE acctID=?;");
-				$updateStmt->bind_param("ss",$toChange['frm-emp-fname'],$update['frm-emp-id']);
-				$output['error-message'] = "Employee's first name updated successfully.";
-			} elseif(!array_key_exists("frm-emp-fname", $toChange) && array_key_exists("frm-emp-lname", $toChange) && !array_key_exists("frm-emp-email", $toChange)) {
+				$updateStmt->bind_param("ss",$update['frm-emp-fname'],$update['frm-emp-id']);
+				$output['error-message'] = "Updated employee's first name updated successfully.";
+			} elseif(!array_key_exists("frm-emp-fname", $toChange) && array_key_exists("frm-emp-lname", $toChange) && !array_key_exists("frm-emp-email", $toChange) && !array_key_exists("frm-emp-admin", $toChange) && !array_key_exists("frm-emp-pic", $toChange)) {
 				// lname
 				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET lastName=? WHERE acctID=?;");
-				$updateStmt->bind_param("ss",$toChange['frm-emp-lname'],$update['frm-emp-id']);
-				$output['error-message'] = "Employee's last name updated successfully.";
-			} elseif(!array_key_exists("frm-emp-fname", $toChange) && !array_key_exists("frm-emp-lname", $toChange) && array_key_exists("frm-emp-email", $toChange)) {
+				$updateStmt->bind_param("ss",$update['frm-emp-lname'],$update['frm-emp-id']);
+				$output['error-message'] = "Updated employee's last name updated successfully.";
+			} elseif(!array_key_exists("frm-emp-fname", $toChange) && !array_key_exists("frm-emp-lname", $toChange) && array_key_exists("frm-emp-email", $toChange) && !array_key_exists("frm-emp-admin", $toChange) && !array_key_exists("frm-emp-pic", $toChange)) {
 				// email
 				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET email=? WHERE acctID=?;");
-				$updateStmt->bind_param("ss",$toChange['frm-emp-email'],$update['frm-emp-id']);
-				$output['error-message'] = "Employee's email updated successfully.";
-			} elseif(array_key_exists("frm-emp-fname", $toChange) && array_key_exists("frm-emp-lname", $toChange) && !array_key_exists("frm-emp-email", $toChange)) {
-				// fname lname
-				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET firstName=?, lastName=? WHERE acctID=?;");
-				$updateStmt->bind_param("sss",$toChange['frm-emp-fname'],$toChange['frm-emp-lname'],$update['frm-emp-id']);
-				$output['error-message'] = "Employee's first name and last name updated successfully.";
-			} elseif(array_key_exists("frm-emp-fname", $toChange) && !array_key_exists("frm-emp-lname", $toChange) && array_key_exists("frm-emp-email", $toChange)) {
-				// fname email
-				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET firstName=?, email=? WHERE acctID=?;");
-				$updateStmt->bind_param("sss",$toChange['frm-emp-fname'],$toChange['frm-emp-email'],$update['frm-emp-id']);
-				$output['error-message'] = "Employee's first name and email updated successfully.";
-			} elseif(!array_key_exists("frm-emp-fname", $toChange) && array_key_exists("frm-emp-lname", $toChange) && array_key_exists("frm-emp-email", $toChange)) {
-				// lname email
-				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET lastName=?, email=? WHERE acctID=?;");
-				$updateStmt->bind_param("sss",$toChange['frm-emp-lname'],$toChange['frm-emp-email'],$update['frm-emp-id']);
-				$output['error-message'] = "Employee's last name and email updated successfully.";
-			} else {
+				$updateStmt->bind_param("ss",$update['frm-emp-email'],$update['frm-emp-id']);
+				$output['error-message'] = "Updated employee's email updated successfully.";
+			} elseif(array_key_exists("frm-emp-fname", $toChange) && !array_key_exists("frm-emp-lname", $toChange) && !array_key_exists("frm-emp-email", $toChange) && array_key_exists("frm-emp-admin", $toChange) && !array_key_exists("frm-emp-pic", $toChange)) {
+				// admin
+				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET isAdmin=? WHERE acctID=?;");
+				$updateStmt->bind_param("ss",$toChange['frm-emp-admin'],$update['frm-emp-id']);
+				$output['error-message'] = "Updated employee's account privilege updated successfully.";
+			} elseif(!array_key_exists("frm-emp-fname", $toChange) && !array_key_exists("frm-emp-lname", $toChange) && !array_key_exists("frm-emp-email", $toChange) && !array_key_exists("frm-emp-admin", $toChange) && array_key_exists("frm-emp-pic", $toChange)) {
+				// photo
+				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET photo=? WHERE acctID=?;");
+				$updateStmt->bind_param("ss",$toChange['frm-emp-pic'],$update['frm-emp-id']);
+				$output['error-message'] = "Updated employee's photo updated successfully.";
+			} elseif(!array_key_exists("frm-emp-fname", $toChange) && !array_key_exists("frm-emp-lname", $toChange) && !array_key_exists("frm-emp-email", $toChange) && array_key_exists("frm-emp-admin", $toChange) && array_key_exists("frm-emp-pic", $toChange)) {
+				// photo and admin
+				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET isAdmin=?, photo=? WHERE acctID=?;");
+				$updateStmt->bind_param("sss",$toChange['frm-emp-admin'],$toChange['frm-emp-pic'],$update['frm-emp-id']);
+				$output['error-message'] = "Updated employee's photo updated successfully.";
+			} elseif((array_key_exists("frm-emp-fname", $toChange) || array_key_exists("frm-emp-lname", $toChange) || array_key_exists("frm-emp-email", $toChange)) && !array_key_exists("frm-emp-admin", $toChange) && !array_key_exists("frm-emp-pic", $toChange)) {
+				// fname, lname, email
 				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET firstName=?, lastName=?, email=? WHERE acctID=?;");
-				$updateStmt->bind_param("ssss",$toChange['frm-emp-fname'],$toChange['frm-emp-lname'],$toChange['frm-emp-email'],$update['frm-emp-id']);
-				$output['error-message'] = "Employee's first name, last name and email updated successfully.";
+				$updateStmt->bind_param("ssss",$update['frm-emp-fname'],$update['frm-emp-lname'],$update['frm-emp-email'],$update['frm-emp-id']);
+				$output['error-message'] = "Updated employee's info successfully.";
+			} elseif((array_key_exists("frm-emp-fname", $toChange) || array_key_exists("frm-emp-lname", $toChange) || array_key_exists("frm-emp-email", $toChange)) && array_key_exists("frm-emp-admin", $toChange) && !array_key_exists("frm-emp-pic", $toChange)) {
+				// fname, lname, email, admin
+				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET firstName=?, lastName=?, email=?, isAdmin=? WHERE acctID=?;");
+				$updateStmt->bind_param("sssss",$update['frm-emp-fname'],$update['frm-emp-lname'],$update['frm-emp-email'],$toChange['frm-emp-admin'],$update['frm-emp-id']);
+				$output['error-message'] = "Updated employee's info and privilege successfully.";
+			} elseif((array_key_exists("frm-emp-fname", $toChange) || array_key_exists("frm-emp-lname", $toChange) || array_key_exists("frm-emp-email", $toChange)) && !array_key_exists("frm-emp-admin", $toChange) && array_key_exists("frm-emp-pic", $toChange)) {
+				// fname, lname, email, photo
+				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET firstName=?, lastName=?, email=?, photo=? WHERE acctID=?;");
+				$updateStmt->bind_param("sssss",$update['frm-emp-fname'],$update['frm-emp-lname'],$update['frm-emp-email'],$toChange['frm-emp-pic'],$update['frm-emp-id']);
+				$output['error-message'] = "Updated employee's info and privilege successfully.";
+			} else {
+				// fname, lname, email, photo
+				$updateStmt = $myConn->prepare("UPDATE emp_accounts SET firstName=?, lastName=?, email=?, isAdmin=?, photo=? WHERE acctID=?;");
+				$updateStmt->bind_param("ssssss",$update['frm-emp-fname'],$update['frm-emp-lname'],$update['frm-emp-email'],$update['frm-emp-admin'],$update['frm-emp-pic'],$update['frm-emp-id']);
+				$output['error-message'] = "Updated employee's account profile successfully.";
 			}
 			
+			
 			if($updateStmt) {
-				$updateStmt->execute();
-				return true;
+				if($updateStmt->execute()) {
+					return true;
+				} else {
+					$output['error-message'] = "Update database error: " . $updateStmt->error;
+					return false;
+				}
+				
 			} else {
 				$output['error-message'] = "Database error: " . $myConn->error;
 				return false;
@@ -449,7 +535,7 @@
 				return false;
 			} else {
 				$newPass = md5($update['emp-new-pass-confirm']);
-				if(array_key_exists("emp-fname",$toChange) && !array_key_exists("emp-lname",$toChange) && !array_key_exists("emp-email",$toChange)) {
+				if(array_key_exists("emp-fname",$toChange) && !array_key_exists("emp-lname",$toChange) && !array_key_exists("emp-email",$toChange) && !array_key_exists("emp-email",$toChange)) {
 					$updateStmt = $myConn->prepare("UPDATE emp_accounts SET firstName=?, passWord=? WHERE acctID=?;");
 					$updateStmt->bind_param("sss",$update['emp-fname'],$newPass,$update['emp-id']);
 					$output['msg'] = "Updated pass and firstname.";
