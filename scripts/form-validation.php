@@ -11,14 +11,14 @@
 	if(isset($_GET['src']) && $_GET['src'] == 'edit') {
 		$fields = ['emp-id','emp-fname','emp-lname','emp-email','emp-old-pass','emp-new-pass','emp-new-pass-confirm'];
 		$pass_section = ['emp-old-pass','emp-new-pass','emp-new-pass-confirm'];
-		
+		//var_dump($_POST);
 		if($_SERVER["REQUEST_METHOD"] == "POST") {
 			foreach($fields as $input) {
 				if(empty($_POST[$input]) && !in_array($input, $pass_section)) {
 					$err[$input] = $input;
 				} else {
 					if(in_array($input, $pass_section)) {
-						
+						$update[$input] = $_POST[$input];
 					} else {
 						if(strlen($_POST[$input]) <= 2) {
 							$err[$input] = $input;
@@ -35,14 +35,16 @@
 				$output = $err;
 				$output['error'] = "1";
 				$output['msg'] = "validation";
-				echo json_encode($output);
+ 				echo json_encode($output);
 			} else {
+				$output = $update;
 				if(empty($update['emp-old-pass'])) {
 					if(!empty($update['emp-new-pass']) && !empty($update['emp-new-pass-confirm'])) {
 						$output['error'] = "1";
 						$output['msg'] = "validation";
 						$output['emp-new-pass'] = "emp-new-pass";
 						$output['emp-new-pass-confirm'] = "emp-new-pass-confirm";
+						$output['debug'] = "test1";
 						//var_dump($output);
 					} else {
 						// proceed to change fields without changing password
@@ -493,7 +495,7 @@
 		if($withPass == true) {
 			$passCheck = md5($update['emp-old-pass']);
 			if($checkPass = $myConn->prepare("SELECT * FROM emp_accounts WHERE acctID=? AND passWord=?;")) {
-				$checkPass->bind_param("ss",$update['emp-id'],$update['emp-old-pass']);
+				$checkPass->bind_param("ss",$update['emp-id'],$passCheck);
 				$checkPass->execute();
 				$resultcheckPass = $checkPass->get_result();
 				if($resultcheckPass->num_rows > 0) {
@@ -532,6 +534,7 @@
 			if(count($err) > 0) {
 				$output = $err;
 				$output['msg'] = "validation";
+				$output['debug'] = "test2";
 				return false;
 			} else {
 				$newPass = md5($update['emp-new-pass-confirm']);
@@ -573,6 +576,7 @@
 					return true;
 				} else {
 					$output['msg'] = "Database error: " . $myConn->error;
+					$output = $err;
 					return false;
 				}
 				$updateStmt->close();

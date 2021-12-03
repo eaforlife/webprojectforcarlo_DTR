@@ -56,6 +56,8 @@
 					session_destroy();
 					$output = array("status" => "OK - logout set");
 				} else {
+					session_unset();
+					session_destroy();
 					$output = array("status" => "Database Error: " . $myConn->error);
 				}
 				$logoutQuery->close();

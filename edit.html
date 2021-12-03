@@ -353,7 +353,7 @@
 	function formLogout() {
 		var xhr = new XMLHttpRequest();
 		xhr.onload = function() {
-			//console.log(this.responseText);
+			//console.log("idle");
 			window.location.href = "./login.html";
 		}
 		xhr.open("GET", "./scripts/session-logout.php", true);
